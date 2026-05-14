@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Николай Кулдин — Юридические услуги</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #7c5cfc;
+      --accent2: #c084fc;
+      --glow: rgba(124, 92, 252, 0.55);
+      --bg: #0a0a0a;
+      --card: #111118;
+      --border: rgba(124, 92, 252, 0.18);
+      --text: #e8e8f0;
+      --muted: #888;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* Фоновые частицы */
+    .bg-particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.15; }
+      90%  { opacity: 0.08; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* Карточка */
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 52px 44px 44px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(124,92,252,0.12), 0 24px 64px rgba(0,0,0,0.6);
+      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(36px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Верхняя полоска-декор */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12%; right: 12%;
+      height: 2px;
+      border-radius: 0 0 4px 4px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+      opacity: 0.9;
+    }
+
+    /* Аватар-заглушка */
+    .avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 28px;
+    }
+    .avatar-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent), var(--accent2), var(--accent));
+      animation: spin 4s linear infinite;
+      z-index: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .avatar-ring::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--card);
+    }
+    .avatar {
+      position: relative;
+      z-index: 1;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e1b4b, #2d1b69);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent2);
+      letter-spacing: -1px;
+      user-select: none;
+    }
+
+    /* Имя */
+    .name {
+      font-size: clamp(26px, 6vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(120deg, #c084fc 0%, #818cf8 40%, #7c5cfc 70%, #c084fc 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3.5s linear infinite;
+      filter: drop-shadow(0 0 18px rgba(192,132,252,0.45));
+      margin-bottom: 10px;
+      line-height: 1.15;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* Специализация */
+    .specialty {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .specialty-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.4); opacity: 0.6; }
+    }
+
+    /* Разделитель */
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 auto 32px;
+    }
+
+    /* Иконки соцсетей */
+    .socials {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .social-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .social-link:hover {
+      color: #fff;
+      border-color: var(--accent);
+      transform: translateY(-4px) scale(1.08);
+      box-shadow: 0 8px 24px var(--glow);
+    }
+    .social-link:hover::before { opacity: 0.15; }
+    .social-link svg {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.2s;
+    }
+    .social-link:hover svg { transform: scale(1.12); }
+
+    /* Кнопка */
+    .btn-wrap {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .btn-glow {
+      position: absolute;
+      inset: -1px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+      background-size: 200% auto;
+      animation: shimmer 3s linear infinite;
+      filter: blur(6px);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .btn-wrap:hover .btn-glow { opacity: 0.7; }
+    .btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 15px 32px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+      overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.45s ease;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px var(--glow); }
+    .btn:hover::after { left: 160%; }
+    .btn:active { transform: scale(0.97); }
+
+    /* Нижний текст */
+    .footer-note {
+      margin-top: 28px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 0.8px;
+    }
+
+    /* Адаптив */
+    @media (max-width: 480px) {
+      .card { padding: 40px 24px 32px; border-radius: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Фоновые частицы -->
+<div class="bg-particles" id="particles"></div>
+
+<div class="card">
+  <!-- Аватар -->
+  <div class="avatar-wrap">
+    <div class="avatar-ring"></div>
+    <div class="avatar">НК</div>
+  </div>
+
+  <!-- Имя -->
+  <h1 class="name">Николай Кулдин</h1>
+
+  <!-- Специализация -->
+  <div class="specialty">
+    <span class="specialty-dot"></span>
+    Юридические услуги
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Иконки соцсетей -->
+  <div class="socials">
+
+    <!-- Telegram -->
+    <a class="social-link" href="https://t.me/Nikolay_qool" target="_blank" rel="noopener" title="Telegram">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21.94 4.26a1.5 1.5 0 0 0-1.53-.22L2.68 11.13a1.5 1.5 0 0 0 .07 2.79l3.96 1.32 1.55 4.96a1 1 0 0 0 1.7.39l2.27-2.27 4.25 3.13a1.5 1.5 0 0 0 2.35-1l2.64-14.64a1.5 1.5 0 0 0-.53-1.55zm-9.1 10.67-.84 2.54-.96-3.05 7.72-7.31-5.92 7.82z" fill="currentColor"/>
+      </svg>
+    </a>
+
+    <!-- WhatsApp -->
+    <a class="social-link" href="https://wa.me/" target="_blank" rel="noopener" title="WhatsApp">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.09-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.87 13.54c-.2.55-1.17 1.07-1.62 1.13-.44.06-.98.08-1.58-.1a14.3 14.3 0 0 1-1.44-.53c-2.54-1.1-4.2-3.66-4.33-3.83-.13-.17-1.05-1.4-1.05-2.67 0-1.27.67-1.9.9-2.16.24-.26.52-.32.69-.32l.5.01c.16 0 .38-.06.6.46.22.52.74 1.8.8 1.93.07.13.11.28.02.45-.09.17-.13.28-.26.42-.13.14-.27.3-.39.41-.13.12-.26.25-.11.49.15.24.67 1.1 1.44 1.79.99.88 1.82 1.15 2.07 1.28.25.13.4.11.55-.07.15-.18.63-.73.79-.98.17-.25.33-.21.56-.13.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.56-.14 1.1z" fill="currentColor"/>
+      </svg>
+    </a>
+
+    <!-- Instagram -->
+    <a class="social-link" href="#" target="_blank" rel="noopener" title="Instagram">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/>
+      </svg>
+    </a>
+
+    <!-- VK -->
+    <a class="social-link" href="#" target="_blank" rel="noopener" title="ВКонтакте">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13.16 17c-.35 0-.5-.2-.5-.5v-2.6c0-.37-.12-.5-.44-.5-2.12.08-3.47 1.44-4.15 3.1-.13.3-.27.5-.6.5H5.56c-.4 0-.5-.22-.4-.55C6.3 13.8 9.1 11 13.2 11h.94c.35 0 .5-.18.5-.5V8.35c0-.35.18-.5.43-.28l4.44 3.5c.28.22.28.58 0 .8l-4.44 3.5c-.2.16-.41.13-.41-.87z" fill="currentColor"/>
+        <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" fill="none"/>
+      </svg>
+    </a>
+
+  </div>
+
+  <!-- Кнопка -->
+  <div class="btn-wrap">
+    <div class="btn-glow"></div>
+    <a class="btn" href="https://t.me/Nikolay_qool" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21.94 4.26a1.5 1.5 0 0 0-1.53-.22L2.68 11.13a1.5 1.5 0 0 0 .07 2.79l3.96 1.32 1.55 4.96a1 1 0 0 0 1.7.39l2.27-2.27 4.25 3.13a1.5 1.5 0 0 0 2.35-1l2.64-14.64a1.5 1.5 0 0 0-.53-1.55zm-9.1 10.67-.84 2.54-.96-3.05 7.72-7.31-5.92 7.82z" fill="currentColor"/>
+      </svg>
+      Написать мне
+    </a>
+  </div>
+
+  <p class="footer-note">© 2026 · Николай Кулдин</p>
+</div>
+
+<script>
+  // Генерация фоновых частиц
+  (function() {
+    const container = document.getElementById('particles');
+    const count = 28;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 3 + 1;
+      const left = Math.random() * 100;
+      const delay = Math.random() * 18;
+      const duration = Math.random() * 14 + 10;
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${left}%;
+        animation-delay:${delay}s;
+        animation-duration:${duration}s;
+      `;
+      container.appendChild(p);
+    }
+  })();
+
+  // Эффект наклона карточки при движении мыши
+  const card = document.querySelector('.card');
+  document.addEventListener('mousemove', function(e) {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (window.innerWidth / 2);
+    const dy = (e.clientY - cy) / (window.innerHeight / 2);
+    const maxTilt = 7;
+    card.style.transform = `perspective(900px) rotateY(${dx * maxTilt}deg) rotateX(${-dy * maxTilt}deg)`;
+  });
+  document.addEventListener('mouseleave', function() {
+    card.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg)';
+    card.style.transition = 'transform 0.5s ease';
+  });
+  document.addEventListener('mouseenter', function() {
+    card.style.transition = 'transform 0.1s ease';
+  });
+</script>
+</body>
+</html>
