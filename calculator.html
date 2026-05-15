@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор доставки</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .card-header .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .card-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .card-header p {
+      color: #718096;
+      margin-top: 6px;
+      font-size: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f7fafc;
+      color: #1a202c;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+      background: #fff;
+    }
+
+    .weight-wrapper {
+      position: relative;
+    }
+
+    .weight-wrapper input {
+      padding-right: 52px;
+    }
+
+    .weight-unit {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0;
+      font-size: 15px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper::after {
+      content: '▾';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0;
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .btn-calculate {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #4299e1, #3182ce);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 14px rgba(66, 153, 225, 0.4);
+    }
+
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66, 153, 225, 0.5);
+    }
+
+    .btn-calculate:active {
+      transform: translateY(0);
+    }
+
+    .result {
+      display: none;
+      margin-top: 24px;
+      padding: 24px;
+      background: linear-gradient(135deg, #ebf8ff, #e6fffa);
+      border-radius: 14px;
+      border: 1.5px solid #bee3f8;
+      text-align: center;
+    }
+
+    .result.visible {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .result-label {
+      font-size: 14px;
+      color: #4a5568;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .result-price {
+      font-size: 42px;
+      font-weight: 800;
+      color: #2b6cb0;
+      line-height: 1;
+    }
+
+    .result-price span {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .result-details {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #718096;
+      line-height: 1.7;
+    }
+
+    .result-details strong {
+      color: #4a5568;
+    }
+
+    .error {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: #fff5f5;
+      border: 1.5px solid #fed7d7;
+      border-radius: 10px;
+      color: #c53030;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .error.visible {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        padding: 28px 20px;
+      }
+
+      .card-header h1 {
+        font-size: 22px;
+      }
+
+      .result-price {
+        font-size: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="icon">📦</div>
+    <h1>Калькулятор доставки</h1>
+    <p>Рассчитайте стоимость за несколько секунд</p>
+  </div>
+
+  <div class="form-group">
+    <label for="weight">Вес посылки</label>
+    <div class="weight-wrapper">
+      <input type="number" id="weight" placeholder="Например: 2.5" min="0.1" step="0.1">
+      <span class="weight-unit">кг</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="from-city">Город отправления</label>
+    <div class="select-wrapper">
+      <select id="from-city">
+        <option value="">— Выберите город —</option>
+        <option value="moscow">Москва</option>
+        <option value="spb">Санкт-Петербург</option>
+        <option value="novosibirsk">Новосибирск</option>
+        <option value="ekaterinburg">Екатеринбург</option>
+        <option value="kazan">Казань</option>
+        <option value="krasnodar">Краснодар</option>
+        <option value="samara">Самара</option>
+        <option value="rostov">Ростов-на-Дону</option>
+        <option value="ufa">Уфа</option>
+        <option value="vladivostok">Владивосток</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="to-city">Город получения</label>
+    <div class="select-wrapper">
+      <select id="to-city">
+        <option value="">— Выберите город —</option>
+        <option value="moscow">Москва</option>
+        <option value="spb">Санкт-Петербург</option>
+        <option value="novosibirsk">Новосибирск</option>
+        <option value="ekaterinburg">Екатеринбург</option>
+        <option value="kazan">Казань</option>
+        <option value="krasnodar">Краснодар</option>
+        <option value="samara">Самара</option>
+        <option value="rostov">Ростов-на-Дону</option>
+        <option value="ufa">Уфа</option>
+        <option value="vladivostok">Владивосток</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-calculate" onclick="calculate()">Рассчитать стоимость</button>
+
+  <div class="error" id="error">Пожалуйста, заполните все поля корректно.</div>
+
+  <div class="result" id="result">
+    <div class="result-label">Стоимость доставки</div>
+    <div class="result-price" id="price"></div>
+    <div class="result-details" id="details"></div>
+  </div>
+</div>
+
+<script>
+  const distances = {
+    moscow:      { moscow: 0,    spb: 705,  novosibirsk: 3355, ekaterinburg: 1789, kazan: 820,  krasnodar: 1353, samara: 1055, rostov: 1076, ufa: 1337, vladivostok: 9177 },
+    spb:         { moscow: 705,  spb: 0,    novosibirsk: 3791, ekaterinburg: 2225, kazan: 1556, krasnodar: 2058, samara: 1760, rostov: 1781, ufa: 2073, vladivostok: 9613 },
+    novosibirsk: { moscow: 3355, spb: 3791, novosibirsk: 0,    ekaterinburg: 1566, kazan: 2535, krasnodar: 3708, samara: 2300, rostov: 3431, ufa: 2018, vladivostok: 5822 },
+    ekaterinburg:{ moscow: 1789, spb: 2225, novosibirsk: 1566, ekaterinburg: 0,    kazan: 969,  krasnodar: 2142, samara: 734,  rostov: 1865, ufa: 452,  vladivostok: 7388 },
+    kazan:       { moscow: 820,  spb: 1556, novosibirsk: 2535, ekaterinburg: 969,  kazan: 0,    krasnodar: 1673, samara: 235,  rostov: 1396, ufa: 517,  vladivostok: 8357 },
+    krasnodar:   { moscow: 1353, spb: 2058, novosibirsk: 3708, ekaterinburg: 2142, kazan: 1673, krasnodar: 0,    samara: 1308, rostov: 277,  ufa: 1890, vladivostok: 10530 },
+    samara:      { moscow: 1055, spb: 1760, novosibirsk: 2300, ekaterinburg: 734,  kazan: 235,  krasnodar: 1308, samara: 0,    rostov: 1131, ufa: 282,  vladivostok: 8122 },
+    rostov:      { moscow: 1076, spb: 1781, novosibirsk: 3431, ekaterinburg: 1865, kazan: 1396, krasnodar: 277,  samara: 1131, rostov: 0,    ufa: 1613, vladivostok: 10253 },
+    ufa:         { moscow: 1337, spb: 2073, novosibirsk: 2018, ekaterinburg: 452,  kazan: 517,  krasnodar: 1890, samara: 282,  rostov: 1613, ufa: 0,    vladivostok: 7840 },
+    vladivostok: { moscow: 9177, spb: 9613, novosibirsk: 5822, ekaterinburg: 7388, kazan: 8357, krasnodar: 10530,samara: 8122, rostov: 10253,ufa: 7840, vladivostok: 0 },
+  };
+
+  function calculate() {
+    const weight   = parseFloat(document.getElementById('weight').value);
+    const fromCity = document.getElementById('from-city').value;
+    const toCity   = document.getElementById('to-city').value;
+    const errorEl  = document.getElementById('error');
+    const resultEl = document.getElementById('result');
+
+    errorEl.classList.remove('visible');
+    resultEl.classList.remove('visible');
+
+    if (!weight || weight <= 0 || !fromCity || !toCity) {
+      errorEl.textContent = 'Пожалуйста, заполните все поля корректно.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    if (fromCity === toCity) {
+      errorEl.textContent = 'Города отправления и получения совпадают.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    const distance  = distances[fromCity][toCity];
+    const basePrice = 150;
+    const weightPrice = weight * 45;
+    let   distancePrice;
+
+    if (distance <= 500)        distancePrice = distance * 0.12;
+    else if (distance <= 2000)  distancePrice = distance * 0.09;
+    else if (distance <= 5000)  distancePrice = distance * 0.07;
+    else                        distancePrice = distance * 0.05;
+
+    const total = Math.round(basePrice + weightPrice + distancePrice);
+
+    const cityNames = {
+      moscow: 'Москва', spb: 'Санкт-Петербург', novosibirsk: 'Новосибирск',
+      ekaterinburg: 'Екатеринбург', kazan: 'Казань', krasnodar: 'Краснодар',
+      samara: 'Самара', rostov: 'Ростов-на-Дону', ufa: 'Уфа', vladivostok: 'Владивосток'
+    };
+
+    document.getElementById('price').innerHTML = total.toLocaleString('ru-RU') + ' <span>₽</span>';
+    document.getElementById('details').innerHTML =
+      `<strong>Маршрут:</strong> ${cityNames[fromCity]} → ${cityNames[toCity]}<br>
+       <strong>Расстояние:</strong> ${distance.toLocaleString('ru-RU')} км<br>
+       <strong>Вес:</strong> ${weight} кг<br>
+       <strong>Срок доставки:</strong> ${deliveryDays(distance)} дн.`;
+
+    resultEl.classList.add('visible');
+  }
+
+  function deliveryDays(distance) {
+    if (distance <= 500)       return '1–2';
+    if (distance <= 2000)      return '2–4';
+    if (distance <= 5000)      return '4–7';
+    return '7–14';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+
+</body>
+</html>
