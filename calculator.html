@@ -103,6 +103,31 @@
       pointer-events: none;
     }
 
+    .dims-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dims-row .dim-group {
+      flex: 1;
+      position: relative;
+    }
+
+    .dims-row .dim-group input {
+      padding-right: 36px;
+    }
+
+    .dims-row .dim-unit {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0;
+      font-size: 13px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
     .select-wrapper {
       position: relative;
     }
@@ -243,6 +268,24 @@
   </div>
 
   <div class="form-group">
+    <label>Габариты посылки (Д × Ш × В)</label>
+    <div class="dims-row">
+      <div class="dim-group">
+        <input type="number" id="length" placeholder="Длина" min="1" step="1">
+        <span class="dim-unit">см</span>
+      </div>
+      <div class="dim-group">
+        <input type="number" id="width" placeholder="Ширина" min="1" step="1">
+        <span class="dim-unit">см</span>
+      </div>
+      <div class="dim-group">
+        <input type="number" id="height" placeholder="Высота" min="1" step="1">
+        <span class="dim-unit">см</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label for="from-city">Город отправления</label>
     <div class="select-wrapper">
       <select id="from-city">
@@ -307,6 +350,9 @@
 
   function calculate() {
     const weight   = parseFloat(document.getElementById('weight').value);
+    const length   = parseFloat(document.getElementById('length').value);
+    const width    = parseFloat(document.getElementById('width').value);
+    const height   = parseFloat(document.getElementById('height').value);
     const fromCity = document.getElementById('from-city').value;
     const toCity   = document.getElementById('to-city').value;
     const errorEl  = document.getElementById('error');
@@ -327,9 +373,13 @@
       return;
     }
 
-    const distance  = distances[fromCity][toCity];
-    const basePrice = 150;
-    const weightPrice = weight * 45;
+    const hasDims = length > 0 && width > 0 && height > 0;
+    const volumetricWeight = hasDims ? (length * width * height) / 5000 : 0;
+    const billedWeight = hasDims ? Math.max(weight, volumetricWeight) : weight;
+
+    const distance    = distances[fromCity][toCity];
+    const basePrice   = 150;
+    const weightPrice = billedWeight * 45;
     let   distancePrice;
 
     if (distance <= 500)        distancePrice = distance * 0.12;
@@ -345,11 +395,16 @@
       samara: 'Самара', rostov: 'Ростов-на-Дону', ufa: 'Уфа', vladivostok: 'Владивосток'
     };
 
+    const weightLine = hasDims
+      ? `<strong>Фактический вес:</strong> ${weight} кг &nbsp;|&nbsp; <strong>Объёмный:</strong> ${volumetricWeight.toFixed(2)} кг<br>
+         <strong>Тарифный вес:</strong> ${billedWeight.toFixed(2)} кг ${volumetricWeight > weight ? '(по габаритам)' : '(по факту)'}<br>`
+      : `<strong>Вес:</strong> ${weight} кг<br>`;
+
     document.getElementById('price').innerHTML = total.toLocaleString('ru-RU') + ' <span>₽</span>';
     document.getElementById('details').innerHTML =
       `<strong>Маршрут:</strong> ${cityNames[fromCity]} → ${cityNames[toCity]}<br>
        <strong>Расстояние:</strong> ${distance.toLocaleString('ru-RU')} км<br>
-       <strong>Вес:</strong> ${weight} кг<br>
+       ${weightLine}
        <strong>Срок доставки:</strong> ${deliveryDays(distance)} дн.`;
 
     resultEl.classList.add('visible');
