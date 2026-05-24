@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- charset обязателен, иначе кириллица может «поплыть» в некоторых браузерах -->
+    <meta charset="UTF-8">
+
+    <!-- viewport нужен для мобильной адаптации: говорит браузеру не «зумить» страницу -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI-конструктор претензий — составьте претензию за 7 минут</title>
+
+    <style>
+        /* === Сброс базовых стилей ===
+           Браузеры по умолчанию добавляют отступы у body, h1 и т.д.
+           Сбрасываем, чтобы потом контролировать вручную. */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; /* размер элемента считается с padding и border — удобнее */
+        }
+
+        /* === Тело страницы ===
+           Тёмный фон и светлый текст — по правилам из CLAUDE.md.
+           font-family с фоллбэком на системные шрифты — быстро грузится, ничего не качаем. */
+        body {
+            background: #1a1a1a;
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh; /* фон растягивается на всю высоту экрана даже если контента мало */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* === Главный контейнер ===
+           max-width ограничивает ширину на больших экранах — текст не растягивается до 2000px. */
+        .hero {
+            max-width: 640px;
+            text-align: center;
+        }
+
+        /* === Заголовок ===
+           clamp() — это умный размер: минимум 28px, максимум 48px,
+           между ними плавно меняется в зависимости от ширины экрана.
+           Так не нужны медиа-запросы для размера шрифта. */
+        h1 {
+            font-size: clamp(28px, 6vw, 48px);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        /* Оранжевое выделение для ключевого слова — акцентный цвет проекта */
+        .accent {
+            color: #ff7a00;
+        }
+
+        /* Подзаголовок — чуть бледнее, чем основной текст, чтобы не спорил с h1 */
+        .subtitle {
+            font-size: clamp(16px, 2.5vw, 20px);
+            color: #b0b0b0;
+            margin-bottom: 40px;
+        }
+
+        /* === Кнопка-CTA ===
+           Оранжевая, крупная, с отступами — чтобы было легко нажать пальцем на телефоне.
+           min-height: 48px — это рекомендация WCAG (доступность),
+           меньше — пользователи с крупными пальцами промахиваются. */
+        .cta {
+            display: inline-block;
+            background: #ff7a00;
+            color: #1a1a1a;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 48px;
+            transition: transform 0.15s, background 0.15s;
+            text-decoration: none;
+        }
+
+        /* :hover — что происходит при наведении мыши.
+           На мобильных не работает, но это и нормально — там клик. */
+        .cta:hover {
+            background: #ff9633;
+            transform: translateY(-2px); /* кнопка чуть «приподнимается» — приятный эффект */
+        }
+
+        /* :active — момент нажатия. Имитируем что кнопка «вжалась». */
+        .cta:active {
+            transform: translateY(0);
+        }
+
+        /* === Подсказка под кнопкой ===
+           Мелкий текст «бесплатно посмотреть превью» — снимает страх «сейчас будут просить деньги». */
+        .hint {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* === Маленький подзаголовок над h1 ===
+           Категория продукта мелкими капителями — приём из дизайна лендингов. */
+        .eyebrow {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #ff7a00;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Главный блок страницы. Используем <main> вместо <div> — это семантичный тег,
+         помогает скринридерам и поисковикам понять, где основной контент. -->
+    <main class="hero">
+
+        <div class="eyebrow">AI-конструктор претензий</div>
+
+        <h1>
+            Магазин отказал в возврате?<br>
+            Составим <span class="accent">грамотную претензию</span> за 7 минут
+        </h1>
+
+        <p class="subtitle">
+            ответите на несколько вопросов — получите готовый документ
+            со ссылками на статьи закона и инструкцию, что делать дальше
+        </p>
+
+        <!-- Пока кнопка ничего не делает — обработчик добавим на шаге 2.
+             Используем <button>, а не <a>, потому что это действие, а не переход.
+             onclick="..." с alert — временная заглушка, чтобы видеть, что клик работает. -->
+        <button class="cta" onclick="alert('wizard будет на следующем шаге')">
+            Составить претензию
+        </button>
+
+        <div class="hint">бесплатно посмотреть превью — оплата только за PDF</div>
+
+    </main>
+
+</body>
+</html>
