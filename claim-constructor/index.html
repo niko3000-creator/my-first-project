@@ -281,6 +281,66 @@
             animation: flash 0.6s ease;
         }
 
+        /* === Стиль для textarea ===
+           Дополнительно к общим .field input — задаём min-height и vertical resize. */
+        .field textarea {
+            min-height: 160px;
+            resize: vertical;     /* пользователь может растянуть только по высоте, не по ширине */
+            font-family: inherit; /* textarea по умолчанию использует monospace — перебиваем */
+        }
+
+        /* Счётчик символов под textarea.
+           display: flex + space-between разносит «минимум 30 символов» влево и счётчик вправо. */
+        .char-counter {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* Когда символов мало — счётчик красный */
+        .char-counter.too-short {
+            color: #ff8888;
+        }
+
+        /* Когда символов слишком много — тоже красный */
+        .char-counter.too-long {
+            color: #ff8888;
+        }
+
+        /* Когда в норме — зелёный */
+        .char-counter.ok {
+            color: #4caf50;
+        }
+
+        /* === Блок-подсказка с примерами ===
+           Серый блок с эмодзи-маркерами — показывает, что писать в textarea. */
+        .examples {
+            background: #222;
+            border-left: 3px solid #555;
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .examples-title {
+            font-weight: 600;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        .examples ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .examples li {
+            margin-bottom: 4px;
+        }
+
         /* === Панель кнопок «назад / далее» в низу wizard ===
            flexbox: space-between разносит кнопки по краям. */
         .nav {
@@ -447,6 +507,47 @@
     </section>
 
 
+    <!-- === Экран 5: Описание ситуации === -->
+    <section class="screen" id="screen-description">
+
+        <h2 class="question">опишите, что случилось</h2>
+        <p class="question-hint">расскажите своими словами — мы переведём в юридический формат</p>
+
+        <!-- Подсказка с примерами — снимает страх «пустого листа».
+             Помогает пользователю понять, что вообще писать. -->
+        <div class="examples">
+            <div class="examples-title">что полезно упомянуть:</div>
+            <ul>
+                <li>когда и где обнаружили проблему с товаром</li>
+                <li>в чём именно проявляется дефект или несоответствие</li>
+                <li>обращались ли уже в магазин — что вам ответили</li>
+                <li>есть ли чек, гарантийный талон, фото дефекта</li>
+            </ul>
+        </div>
+
+        <div class="field">
+            <label for="description">описание ситуации</label>
+            <textarea id="description"
+                      placeholder="например: 14 марта купил в магазине беспроводные наушники. Через два дня правый перестал заряжаться. Обратился в магазин 17 марта — отказали в возврате, сослались на то, что это «не гарантийный случай»..."
+                      oninput="updateCharCounter()"></textarea>
+
+            <!-- Счётчик символов под полем.
+                 Слева — пояснение, справа — текущее число. -->
+            <div class="char-counter" id="char-counter">
+                <span>минимум 30, максимум 1000 символов</span>
+                <span id="char-count">0</span>
+            </div>
+        </div>
+
+        <div class="nav">
+            <button class="back-btn" onclick="goTo('screen-seller')">← назад</button>
+            <!-- Тут вместо «далее» — финальная кнопка, потому что это последний шаг wizard -->
+            <button class="next-btn" onclick="saveDescription()">составить претензию →</button>
+        </div>
+
+    </section>
+
+
     <script>
         /* === Состояние приложения ===
            Один объект, в котором накапливаем все ответы пользователя.
@@ -464,7 +565,7 @@
                 inn: '',
                 address: ''
             },
-            // дальше добавим: description
+            description: ''     // описание ситуации с шага 5
         };
 
         /* === Переключатель экранов ===
@@ -795,8 +896,66 @@
             state.seller = { name: name, inn: inn, address: address };
             console.log('состояние:', state);
 
-            // Заглушка до шага 5
-            alert('продавец сохранён:\n' + name + '\nИНН: ' + inn + '\n' + address);
+            goTo('screen-description');
+        }
+
+        /* === Константы для длины описания ===
+           Вынесены отдельно, чтобы легко поменять в одном месте. */
+        const DESCRIPTION_MIN = 30;
+        const DESCRIPTION_MAX = 1000;
+
+        /* === Обновление счётчика символов ===
+           Срабатывает на каждое нажатие в textarea.
+           Меняет число и подкрашивает счётчик красным/зелёным. */
+        function updateCharCounter() {
+            const textarea = document.getElementById('description');
+            const counter = document.getElementById('char-counter');
+            const countSpan = document.getElementById('char-count');
+
+            const length = textarea.value.trim().length;
+            countSpan.textContent = length;
+
+            // Сбрасываем все классы состояния
+            counter.classList.remove('too-short', 'too-long', 'ok');
+
+            // Решаем, какой класс добавить, по диапазону длины
+            if (length === 0) {
+                // Пустое поле — нейтральный серый, ничего не добавляем
+            } else if (length < DESCRIPTION_MIN) {
+                counter.classList.add('too-short');
+            } else if (length > DESCRIPTION_MAX) {
+                counter.classList.add('too-long');
+            } else {
+                counter.classList.add('ok');
+            }
+        }
+
+        /* === Сохранение описания и переход к генерации ===
+           Проверяем длину, сохраняем, идём дальше. */
+        function saveDescription() {
+            const textarea = document.getElementById('description');
+            const description = textarea.value.trim();
+
+            textarea.classList.remove('error');
+
+            if (description.length < DESCRIPTION_MIN) {
+                textarea.classList.add('error');
+                alert('опишите ситуацию подробнее — минимум ' + DESCRIPTION_MIN + ' символов.\n\nсейчас: ' + description.length);
+                return;
+            }
+
+            if (description.length > DESCRIPTION_MAX) {
+                textarea.classList.add('error');
+                alert('слишком длинное описание — максимум ' + DESCRIPTION_MAX + ' символов.\n\nсейчас: ' + description.length + '\n\nсократите, оставив суть.');
+                return;
+            }
+
+            state.description = description;
+            console.log('финальное состояние:', state);
+
+            // На следующем шаге сделаем экран результата. Пока — заглушка.
+            // JSON.stringify(state, null, 2) красиво выводит весь объект.
+            alert('всё собрано! экран претензии будет на шаге 6.\n\n' + JSON.stringify(state, null, 2));
         }
     </script>
 
