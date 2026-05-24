@@ -113,13 +113,107 @@
             color: #ff7a00;
             margin-bottom: 16px;
         }
+
+        /* === Экраны wizard ===
+           Все экраны лежат в одном HTML.
+           По умолчанию они скрыты (display: none),
+           показываем только тот, у которого есть класс .active.
+           Это самый простой способ сделать «многошаговую форму» без библиотек. */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Заголовок вопроса на экране wizard — поменьше, чем h1 на лендинге */
+        .question {
+            font-size: clamp(22px, 4vw, 32px);
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .question-hint {
+            text-align: center;
+            color: #b0b0b0;
+            margin-bottom: 32px;
+        }
+
+        /* === Кнопки-варианты ответа ===
+           Большие, во всю ширину контейнера — удобно жать пальцем.
+           gap: 12px между кнопками — современный способ через flexbox. */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        /* Сама кнопка-вариант:
+           — тёмно-серый фон, чтобы отличалась от оранжевого CTA
+           — рамка слева оранжевая для акцента
+           — text-align: left, потому что текст в варианте может быть длинным */
+        .option {
+            background: #2a2a2a;
+            color: #e8e8e8;
+            border: 2px solid #2a2a2a;
+            border-left: 4px solid #ff7a00;
+            padding: 18px 20px;
+            font-size: 16px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            font-family: inherit; /* кнопки по умолчанию используют системный шрифт — это перебивает */
+            min-height: 60px;
+        }
+
+        .option:hover {
+            background: #333;
+            border-color: #ff7a00;
+        }
+
+        .option:active {
+            transform: scale(0.98); /* кнопка чуть сжимается — тактильная обратная связь */
+        }
+
+        .option-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .option-desc {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* === Кнопка «назад» ===
+           Без фона, только текст — это вторичное действие, не должно отвлекать от выбора. */
+        .back-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 12px;
+            font-family: inherit;
+        }
+
+        .back-btn:hover {
+            color: #ff7a00;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Главный блок страницы. Используем <main> вместо <div> — это семантичный тег,
-         помогает скринридерам и поисковикам понять, где основной контент. -->
-    <main class="hero">
+    <!-- === Экран 1: Лендинг === -->
+    <!-- class="screen active" — этот экран показан по умолчанию.
+         id="screen-landing" — уникальный идентификатор, чтобы JS мог его найти. -->
+    <section class="screen active hero" id="screen-landing">
 
         <div class="eyebrow">AI-конструктор претензий</div>
 
@@ -133,16 +227,94 @@
             со ссылками на статьи закона и инструкцию, что делать дальше
         </p>
 
-        <!-- Пока кнопка ничего не делает — обработчик добавим на шаге 2.
-             Используем <button>, а не <a>, потому что это действие, а не переход.
-             onclick="..." с alert — временная заглушка, чтобы видеть, что клик работает. -->
-        <button class="cta" onclick="alert('wizard будет на следующем шаге')">
+        <!-- onclick="goTo('screen-problem')" — вызываем функцию из JS ниже.
+             Она прячет текущий экран и показывает экран с id="screen-problem". -->
+        <button class="cta" onclick="goTo('screen-problem')">
             Составить претензию
         </button>
 
         <div class="hint">бесплатно посмотреть превью — оплата только за PDF</div>
 
-    </main>
+    </section>
+
+
+    <!-- === Экран 2: Что случилось === -->
+    <!-- class="screen" без active — скрыт по умолчанию.
+         Появится, когда JS добавит ему класс active. -->
+    <section class="screen" id="screen-problem">
+
+        <h2 class="question">что случилось с товаром?</h2>
+        <p class="question-hint">выберите ситуацию, ближе всего к вашей</p>
+
+        <!-- Контейнер для кнопок-вариантов.
+             data-value="defect" — это атрибут, в котором мы храним «значение» варианта.
+             JS его прочитает и сохранит в state. Так удобнее, чем писать onclick на каждой. -->
+        <div class="options">
+            <button class="option" data-value="defect" onclick="chooseProblem(this)">
+                <div class="option-title">товар бракованный или сломался</div>
+                <div class="option-desc">обнаружили дефект, не работает, разваливается</div>
+            </button>
+
+            <button class="option" data-value="wrong" onclick="chooseProblem(this)">
+                <div class="option-title">товар не подошёл</div>
+                <div class="option-desc">не подошёл по размеру, цвету, фасону — товар целый</div>
+            </button>
+
+            <button class="option" data-value="refused" onclick="chooseProblem(this)">
+                <div class="option-title">магазин отказал в возврате</div>
+                <div class="option-desc">отказали в магазине или на маркетплейсе через интерфейс</div>
+            </button>
+        </div>
+
+        <!-- Кнопка «назад» — возвращает на лендинг -->
+        <button class="back-btn" onclick="goTo('screen-landing')">← назад</button>
+
+    </section>
+
+
+    <script>
+        /* === Состояние приложения ===
+           Один объект, в котором накапливаем все ответы пользователя.
+           На каждом шаге будем добавлять сюда новое поле.
+           На последнем шаге — соберём из state текст претензии. */
+        const state = {
+            problem: null,      // 'defect' | 'wrong' | 'refused'
+            // дальше добавим: product, seller, description и т.д.
+        };
+
+        /* === Переключатель экранов ===
+           Простейший способ многошаговой формы без библиотек:
+           1) находим все элементы с классом .screen
+           2) убираем у всех класс .active (скрываем)
+           3) добавляем .active нужному (показываем)
+
+           document.querySelectorAll — встроенная функция, возвращает все подходящие элементы.
+           forEach — перебираем массив. */
+        function goTo(screenId) {
+            document.querySelectorAll('.screen').forEach(function(screen) {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+
+            // Прокручиваем страницу наверх — иначе на длинных экранах wizard
+            // начнётся «посередине», и пользователь не поймёт, что случилось.
+            window.scrollTo(0, 0);
+        }
+
+        /* === Обработчик выбора проблемы ===
+           Принимает кликнутую кнопку (this = сама кнопка).
+           Читает её data-value, сохраняет в state, идёт дальше.
+
+           На следующем шаге сделаем экран screen-product.
+           Сейчас пока временно покажем alert — чтобы можно было проверить, что state работает. */
+        function chooseProblem(buttonEl) {
+            state.problem = buttonEl.dataset.value;
+            // console.log пишет в консоль браузера (F12 → вкладка Console).
+            // Полезно для проверки, что данные сохраняются правильно.
+            console.log('состояние:', state);
+            alert('выбрали: ' + state.problem + '\nследующий экран будет на шаге 3');
+        }
+    </script>
 
 </body>
 </html>
