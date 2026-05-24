@@ -792,7 +792,8 @@
         <!-- Действия с документом -->
         <div class="actions">
             <button class="action-btn" onclick="copyClaim()">📋 скопировать текст</button>
-            <!-- Кнопка «скачать .txt» появится на шаге 9 -->
+            <button class="action-btn" onclick="downloadClaim()">💾 скачать .txt</button>
+            <!-- PDF появится позже, на этапе бэкенда. В чистом HTML PDF делается криво. -->
         </div>
 
         <!-- Инструкция «что делать дальше» — без неё продукт обрывается на пустоте -->
@@ -1377,6 +1378,52 @@ purchaseDate + ' я приобрёл у вас товар: «' + s.product.name 
                 alert('не получилось скопировать автоматически — выделите текст вручную и нажмите Ctrl+C');
             }
             document.body.removeChild(ta);
+        }
+
+        /* === Скачивание претензии как .txt файла ===
+           Принцип работы:
+             1) Берём текст из «документа» на странице.
+             2) Создаём Blob — виртуальный файл в памяти браузера.
+             3) Создаём ссылку <a href="данные blob" download="имя.txt"> — браузер
+                «думает», что это обычная ссылка на файл, и сохраняет на диск.
+             4) Программно «кликаем» по этой ссылке.
+             5) Удаляем ссылку — она была нужна только на момент клика.
+
+           Это стандартный браузерный способ скачивать файлы без сервера. */
+        function downloadClaim() {
+            const text = document.getElementById('document-text').textContent;
+
+            // === Имя файла ===
+            // Хотим: pretenziya_М.Видео_2026-05-24.txt
+            // Но в имени файла нельзя: / \ : * ? " < > | — заменим на подчёркивание.
+            // Регулярка [\/\\:*?"<>|] — это класс символов, любой из перечисленных.
+            // /g — flag global, заменяет ВСЕ вхождения, а не только первое.
+            const sellerSlug = state.seller.name.replace(/[\/\\:*?"<>|]/g, '_').slice(0, 40);
+            const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+            const filename = 'pretenziya_' + sellerSlug + '_' + today + '.txt';
+
+            // === Создание Blob ===
+            // Blob — это объект «файл в памяти». Принимает массив частей и тип.
+            // ﻿ в начале — это BOM (Byte Order Mark). Без него Windows-блокнот
+            // открывает кириллицу как кракозябры. С BOM — всё читается нормально.
+            const blob = new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' });
+
+            // === Создание временной ссылки на blob ===
+            // URL.createObjectURL делает временный URL вида 'blob:https://...' для blob.
+            const url = URL.createObjectURL(blob);
+
+            // Создаём <a> в памяти, не вставляя его в страницу.
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename; // атрибут download говорит браузеру «скачай, а не открой»
+
+            // Кликаем программно. Браузер начнёт скачивание.
+            document.body.appendChild(a);
+            a.click();
+
+            // Уборка: удаляем ссылку и освобождаем память от blob.
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         /* === Перезапуск wizard — сбрасываем state и идём в начало === */
