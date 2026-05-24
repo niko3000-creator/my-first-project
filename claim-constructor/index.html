@@ -263,6 +263,24 @@
             border-color: #ff4444;
         }
 
+        /* Зелёная подсказка-уведомление «нашли организацию».
+           Появляется под полем ИНН, когда автоподстановка сработала. */
+        .field-hint.success {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        /* Анимация лёгкого подмигивания у автозаполненных полей —
+           чтобы пользователь заметил, что значения подставились. */
+        @keyframes flash {
+            0%   { background: #2a2a2a; }
+            50%  { background: #3a3520; }
+            100% { background: #2a2a2a; }
+        }
+        .field input.autofilled {
+            animation: flash 0.6s ease;
+        }
+
         /* === Панель кнопок «назад / далее» в низу wizard ===
            flexbox: space-between разносит кнопки по краям. */
         .nav {
@@ -393,6 +411,42 @@
     </section>
 
 
+    <!-- === Экран 4: Реквизиты продавца === -->
+    <section class="screen" id="screen-seller">
+
+        <h2 class="question">кто продавец?</h2>
+        <p class="question-hint">данные есть в чеке (бумажном или электронном) и в карточке товара на маркетплейсе</p>
+
+        <div class="field">
+            <label for="seller-name">название продавца</label>
+            <input type="text" id="seller-name" placeholder="например: ООО «Эльдорадо» или ИП Иванов И.И.">
+            <div class="field-hint">с организационно-правовой формой: ООО, ИП, АО</div>
+        </div>
+
+        <div class="field">
+            <label for="seller-inn">ИНН</label>
+            <!-- oninput — срабатывает при каждом изменении в поле (нажатие клавиши, вставка).
+                 Позволяет реагировать сразу, не дожидаясь клика «далее». -->
+            <input type="text" id="seller-inn" inputmode="numeric" maxlength="12"
+                   placeholder="например: 7707083893" oninput="onInnInput()">
+            <!-- id="inn-hint" нужен, чтобы JS мог менять текст подсказки -->
+            <div class="field-hint" id="inn-hint">10 цифр для ООО/АО, 12 цифр для ИП</div>
+        </div>
+
+        <div class="field">
+            <label for="seller-address">адрес продавца</label>
+            <input type="text" id="seller-address" placeholder="например: г. Москва, ул. Тверская, 1">
+            <div class="field-hint">юридический адрес из чека или с сайта магазина</div>
+        </div>
+
+        <div class="nav">
+            <button class="back-btn" onclick="goTo('screen-product')">← назад</button>
+            <button class="next-btn" onclick="saveSeller()">далее →</button>
+        </div>
+
+    </section>
+
+
     <script>
         /* === Состояние приложения ===
            Один объект, в котором накапливаем все ответы пользователя.
@@ -405,7 +459,12 @@
                 price: '',
                 date: ''
             },
-            // дальше добавим: seller, description и т.д.
+            seller: {           // данные о продавце с шага 4
+                name: '',
+                inn: '',
+                address: ''
+            },
+            // дальше добавим: description
         };
 
         /* === Переключатель экранов ===
@@ -489,8 +548,255 @@
             state.product = { name: name, price: price, date: date };
             console.log('состояние:', state);
 
-            // Заглушка до шага 4
-            alert('товар сохранён:\n' + name + '\n' + price + ' ₽\n' + date);
+            // Идём на экран реквизитов продавца
+            goTo('screen-seller');
+        }
+
+        /* ============================================================
+           НАСТРОЙКИ ЛИМИТОВ ЗАПРОСОВ К СПРАВОЧНИКУ ИНН
+           ============================================================
+
+           Два разных лимита, важно их не путать:
+
+           1) ГЛОБАЛЬНЫЙ ЛИМИТ (главная защита от атак): 7 000 запросов/сутки
+              ▸ Настраивается в личном кабинете DaData при подключении токена
+              ▸ В этом коде НЕ реализуется — фронтенд физически не может
+                обеспечить такую защиту (атакующий обойдёт через incognito).
+              ▸ ОБЯЗАТЕЛЬНЫЙ ШАГ при подключении DaData:
+                  Личный кабинет → Настройки → Лимиты → 7000 запросов/день
+              ▸ Дублируется на бэкенде: rate-limit в Cloudflare + серверный кэш
+
+           2) ЛИЧНЫЙ ЛИМИТ ОДНОГО БРАУЗЕРА: 50 запросов/сутки (см. ниже)
+              ▸ Защищает от случайных «зацикливаний» и бережёт пользователя.
+              ▸ Хранится в localStorage браузера со сбросом раз в сутки.
+              ▸ НЕ защита от атак — просто гигиена. */
+        const DAILY_LIMIT_PER_USER = 50;
+
+        /* === Учёт запросов одного браузера ===
+           localStorage — встроенное хранилище браузера. В отличие от обычной
+           переменной, данные не теряются при перезагрузке страницы.
+           Храним два значения:
+             - lookup_count_date: дата, когда счётчик сбрасывался
+             - lookup_count: сколько запросов уже сделано сегодня */
+        function checkAndIncrementLookupQuota() {
+            const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+            const savedDate = localStorage.getItem('lookup_count_date');
+            let count = parseInt(localStorage.getItem('lookup_count') || '0');
+
+            // Если сменился день — сбрасываем счётчик
+            if (savedDate !== today) {
+                count = 0;
+                localStorage.setItem('lookup_count_date', today);
+            }
+
+            // Если превысили — отказываем
+            if (count >= DAILY_LIMIT_PER_USER) {
+                return false;
+            }
+
+            // Увеличиваем счётчик
+            localStorage.setItem('lookup_count', String(count + 1));
+            return true;
+        }
+
+        /* === Mock-справочник реквизитов по ИНН ===
+           В реальной версии вместо этого справочника будет запрос к DaData API.
+           Сейчас захардкодили 6 известных компаний — этого достаточно, чтобы
+           продемонстрировать UX автоподстановки во время разработки и тестов.
+
+           Структура: ИНН → { name, address }.
+           Когда дойдём до бэкенда, заменим на:
+             const data = await fetch('https://suggestions.dadata.ru/...').then(r => r.json());
+        */
+        const INN_DATABASE = {
+            '7707083893': {
+                name: 'ПАО «Сбербанк России»',
+                address: '117997, г. Москва, ул. Вавилова, 19'
+            },
+            '7710140679': {
+                name: 'АО «Тинькофф Банк»',
+                address: '127287, г. Москва, ул. Хуторская 2-я, 38А, стр. 26'
+            },
+            '7736207543': {
+                name: 'ООО «Яндекс»',
+                address: '119021, г. Москва, ул. Льва Толстого, 16'
+            },
+            '7704217370': {
+                name: 'ООО «Интернет Решения» (Ozon)',
+                address: '123112, г. Москва, Пресненская наб., 10, БЦ «Башня на Набережной»'
+            },
+            '7721546864': {
+                name: 'ООО «Вайлдберриз»',
+                address: '142701, Московская обл., г. Видное, ул. Дорожная, 5'
+            },
+            '7707548740': {
+                name: 'ООО «МВМ» (М.Видео)',
+                address: '105066, г. Москва, ул. Нижняя Красносельская, 40/12, корп. 20'
+            }
+        };
+
+        /* === Реакция на ввод ИНН ===
+           Вызывается на каждое нажатие клавиши в поле ИНН.
+           Логика:
+             — если меньше 10 цифр: ничего не делаем, ждём
+             — если 10 или 12 цифр, валидные: ищем в справочнике
+                 — нашли: подставляем название и адрес, зелёная подсказка
+                 — не нашли: серая подсказка «введите вручную»
+             — если 10/12 цифр, но контрольная сумма не сошлась: уже подсветим красным */
+        function onInnInput() {
+            const innInput = document.getElementById('seller-inn');
+            const nameInput = document.getElementById('seller-name');
+            const addressInput = document.getElementById('seller-address');
+            const hint = document.getElementById('inn-hint');
+
+            const inn = innInput.value.trim();
+
+            // Сбрасываем визуальные состояния от прошлых попыток ввода
+            innInput.classList.remove('error');
+            hint.classList.remove('success');
+
+            // Пока введено меньше 10 цифр — обычная подсказка, ничего не ищем
+            if (inn.length < 10) {
+                hint.textContent = '10 цифр для ООО/АО, 12 цифр для ИП';
+                return;
+            }
+
+            // Длина ровно 10 или 12 — момент проверки
+            if (inn.length === 10 || inn.length === 12) {
+                // Сначала проверка контрольной суммы — если плохо, дальше не идём
+                if (!isValidInn(inn)) {
+                    hint.textContent = 'в ИНН опечатка — проверьте цифры';
+                    innInput.classList.add('error');
+                    return;
+                }
+
+                // Проверка личного лимита запросов на сегодня.
+                // Если превысили — не дёргаем «API» (сейчас mock, в будущем DaData).
+                if (!checkAndIncrementLookupQuota()) {
+                    hint.textContent = 'дневной лимит автопоиска исчерпан, введите данные вручную';
+                    return;
+                }
+
+                // Ищем в справочнике
+                const found = INN_DATABASE[inn];
+                if (found) {
+                    // Автоподставляем имя и адрес. Если пользователь уже что-то ввёл —
+                    // не перетираем без спроса (мог редактировать вручную).
+                    if (!nameInput.value.trim()) {
+                        nameInput.value = found.name;
+                        nameInput.classList.add('autofilled');
+                        // Снимаем класс анимации через секунду, чтобы её можно было повторить
+                        setTimeout(function() { nameInput.classList.remove('autofilled'); }, 700);
+                    }
+                    if (!addressInput.value.trim()) {
+                        addressInput.value = found.address;
+                        addressInput.classList.add('autofilled');
+                        setTimeout(function() { addressInput.classList.remove('autofilled'); }, 700);
+                    }
+                    hint.textContent = '✓ нашли организацию — название и адрес подставили';
+                    hint.classList.add('success');
+                } else {
+                    hint.textContent = 'не нашли в справочнике, введите данные вручную';
+                }
+            }
+        }
+
+        /* === Проверка ИНН по контрольной сумме ===
+           ИНН — не просто 10 или 12 цифр. У него есть контрольная сумма,
+           по которой можно проверить, что цифры не «выдуманы».
+           Алгоритм утверждён ФНС: каждой цифре присвоен вес,
+           суммируем произведения, берём остаток от деления на 11.
+
+           Возвращаем true, если ИНН валидный, false — если нет.
+
+           Зачем это нужно: пользователь может опечататься на одну цифру.
+           Без проверки претензия уйдёт «в никуда» — на несуществующее юр.лицо. */
+        function isValidInn(inn) {
+            // Принимаем только строку из цифр длиной 10 или 12
+            if (!/^\d{10}$|^\d{12}$/.test(inn)) {
+                return false;
+            }
+
+            // Для ИНН юр.лиц (10 цифр)
+            if (inn.length === 10) {
+                const weights = [2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+                let sum = 0;
+                for (let i = 0; i < 9; i++) {
+                    sum += parseInt(inn[i]) * weights[i];
+                }
+                const checksum = (sum % 11) % 10;
+                return checksum === parseInt(inn[9]);
+            }
+
+            // Для ИНН ИП (12 цифр) — две контрольные цифры
+            if (inn.length === 12) {
+                const weights1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+                const weights2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+
+                let sum1 = 0;
+                for (let i = 0; i < 11; i++) {
+                    sum1 += parseInt(inn[i]) * weights1[i];
+                }
+                const check1 = (sum1 % 11) % 10;
+
+                let sum2 = 0;
+                for (let i = 0; i < 12; i++) {
+                    sum2 += parseInt(inn[i]) * weights2[i];
+                }
+                const check2 = (sum2 % 11) % 10;
+
+                return check1 === parseInt(inn[10]) && check2 === parseInt(inn[11]);
+            }
+
+            return false;
+        }
+
+        /* === Сохранение реквизитов продавца ===
+           Та же логика, что в saveProduct, но с дополнительной проверкой ИНН. */
+        function saveSeller() {
+            const nameInput = document.getElementById('seller-name');
+            const innInput = document.getElementById('seller-inn');
+            const addressInput = document.getElementById('seller-address');
+
+            const name = nameInput.value.trim();
+            const inn = innInput.value.trim();
+            const address = addressInput.value.trim();
+
+            nameInput.classList.remove('error');
+            innInput.classList.remove('error');
+            addressInput.classList.remove('error');
+
+            let hasError = false;
+
+            if (!name) {
+                nameInput.classList.add('error');
+                hasError = true;
+            }
+            if (!address) {
+                addressInput.classList.add('error');
+                hasError = true;
+            }
+
+            // ИНН — отдельно: и не пустой, и проходит проверку контрольной суммы.
+            // Сразу подсказываем пользователю, что именно не так.
+            if (!inn) {
+                innInput.classList.add('error');
+                hasError = true;
+            } else if (!isValidInn(inn)) {
+                innInput.classList.add('error');
+                alert('похоже, в ИНН опечатка — проверьте, пожалуйста.\n\nИНН — это не любые 10 или 12 цифр, в нём есть контрольная сумма, и эта проверка не сошлась.');
+                hasError = true;
+            }
+
+            if (hasError) {
+                return;
+            }
+
+            state.seller = { name: name, inn: inn, address: address };
+            console.log('состояние:', state);
+
+            // Заглушка до шага 5
+            alert('продавец сохранён:\n' + name + '\nИНН: ' + inn + '\n' + address);
         }
     </script>
 
