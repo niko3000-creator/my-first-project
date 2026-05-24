@@ -127,6 +127,53 @@
 
         .screen.active {
             display: block;
+            /* Анимация появления — экран мягко «всплывает» снизу.
+               Создаёт ощущение движения вперёд по wizard. */
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === Прогресс-бар сверху экранов wizard ===
+           Контейнер с подписью «шаг N из M» + сама полоска. */
+        .progress {
+            margin-bottom: 32px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        /* Серый «трек» — фон полоски */
+        .progress-track {
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        /* Оранжевая «заполняющаяся» часть.
+           width задаётся из JS — '20%', '40%' и т.д.
+           transition делает плавное заполнение, а не скачок. */
+        .progress-fill {
+            height: 100%;
+            background: #ff7a00;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.4s ease;
         }
 
         /* Заголовок вопроса на экране wizard — поменьше, чем h1 на лендинге */
@@ -488,6 +535,18 @@
          Появится, когда JS добавит ему класс active. -->
     <section class="screen" id="screen-problem">
 
+        <!-- Прогресс-бар: первый шаг из четырёх wizard-шагов.
+             width: 25% — заполнено на четверть, потому что мы на 1 из 4. -->
+        <div class="progress">
+            <div class="progress-label">
+                <span>шаг 1 из 4</span>
+                <span>выбор ситуации</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: 25%"></div>
+            </div>
+        </div>
+
         <h2 class="question">что случилось с товаром?</h2>
         <p class="question-hint">выберите ситуацию, ближе всего к вашей</p>
 
@@ -519,6 +578,16 @@
 
     <!-- === Экран 3: Что вы купили === -->
     <section class="screen" id="screen-product">
+
+        <div class="progress">
+            <div class="progress-label">
+                <span>шаг 2 из 4</span>
+                <span>данные о товаре</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: 50%"></div>
+            </div>
+        </div>
 
         <h2 class="question">что вы купили?</h2>
         <p class="question-hint">эти данные попадут в шапку претензии</p>
@@ -557,6 +626,16 @@
     <!-- === Экран 4: Реквизиты продавца === -->
     <section class="screen" id="screen-seller">
 
+        <div class="progress">
+            <div class="progress-label">
+                <span>шаг 3 из 4</span>
+                <span>реквизиты продавца</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: 75%"></div>
+            </div>
+        </div>
+
         <h2 class="question">кто продавец?</h2>
         <p class="question-hint">данные есть в чеке (бумажном или электронном) и в карточке товара на маркетплейсе</p>
 
@@ -592,6 +671,18 @@
 
     <!-- === Экран 5: Описание ситуации === -->
     <section class="screen" id="screen-description">
+
+        <div class="progress">
+            <div class="progress-label">
+                <span>шаг 4 из 4</span>
+                <span>описание ситуации</span>
+            </div>
+            <div class="progress-track">
+                <!-- 100% — последний шаг wizard.
+                     Заполнение «до края» подсказывает «вот-вот будет результат». -->
+                <div class="progress-fill" style="width: 100%"></div>
+            </div>
+        </div>
 
         <h2 class="question">опишите, что случилось</h2>
         <p class="question-hint">расскажите своими словами — мы переведём в юридический формат</p>
