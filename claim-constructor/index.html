@@ -206,6 +206,90 @@
         .back-btn:hover {
             color: #ff7a00;
         }
+
+        /* === Поля ввода ===
+           Группа «лейбл + инпут» для каждого поля.
+           margin-bottom разделяет соседние группы. */
+        .field {
+            margin-bottom: 20px;
+        }
+
+        /* Лейбл — подпись над полем.
+           display: block нужен, чтобы инпут шёл на новой строке, а не рядом. */
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        /* Само поле ввода.
+           Тёмный фон совпадает с .option — единый визуальный язык.
+           width: 100% делает поле во всю ширину контейнера — удобно на мобильных.
+           font-size: 16px на мобильных предотвращает «зум» Safari при фокусе. */
+        .field input,
+        .field textarea {
+            width: 100%;
+            background: #2a2a2a;
+            color: #e8e8e8;
+            border: 2px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+
+        /* :focus — когда пользователь кликнул в поле.
+           Подсвечиваем оранжевой рамкой — это и красиво, и нужно для доступности
+           (люди, которые ходят по форме клавиатурой Tab, должны видеть, где находятся). */
+        .field input:focus,
+        .field textarea:focus {
+            outline: none; /* убираем уродливую браузерную рамку по умолчанию */
+            border-color: #ff7a00;
+        }
+
+        /* Подсказка под полем — мелким серым текстом */
+        .field .field-hint {
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* Подсветка ошибки — красная рамка, если поле пустое при сабмите */
+        .field input.error,
+        .field textarea.error {
+            border-color: #ff4444;
+        }
+
+        /* === Панель кнопок «назад / далее» в низу wizard ===
+           flexbox: space-between разносит кнопки по краям. */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+        }
+
+        /* Кнопка «далее» — поменьше CTA, но того же стиля */
+        .next-btn {
+            background: #ff7a00;
+            color: #1a1a1a;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 48px;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .next-btn:hover {
+            background: #ff9633;
+        }
     </style>
 </head>
 <body>
@@ -272,6 +356,43 @@
     </section>
 
 
+    <!-- === Экран 3: Что вы купили === -->
+    <section class="screen" id="screen-product">
+
+        <h2 class="question">что вы купили?</h2>
+        <p class="question-hint">эти данные попадут в шапку претензии</p>
+
+        <!-- Каждая группа .field = лейбл + поле + подсказка.
+             id у инпута нужен, чтобы JS мог его найти и прочитать значение. -->
+        <div class="field">
+            <label for="product-name">название товара</label>
+            <input type="text" id="product-name" placeholder="например: смартфон Samsung Galaxy A55">
+            <div class="field-hint">как написано на чеке или в карточке товара</div>
+        </div>
+
+        <div class="field">
+            <label for="product-price">цена, ₽</label>
+            <!-- type="number" даёт цифровую клавиатуру на мобильных и не пускает буквы.
+                 inputmode="numeric" — дублирующая подсказка для iOS Safari. -->
+            <input type="number" id="product-price" inputmode="numeric" placeholder="например: 24990">
+        </div>
+
+        <div class="field">
+            <label for="product-date">дата покупки</label>
+            <!-- type="date" даёт нативный календарь — на мобильных это родной пикер дат.
+                 Удобнее любого календаря, который мы бы сделали сами. -->
+            <input type="date" id="product-date">
+        </div>
+
+        <!-- Панель навигации с двумя кнопками -->
+        <div class="nav">
+            <button class="back-btn" onclick="goTo('screen-problem')">← назад</button>
+            <button class="next-btn" onclick="saveProduct()">далее →</button>
+        </div>
+
+    </section>
+
+
     <script>
         /* === Состояние приложения ===
            Один объект, в котором накапливаем все ответы пользователя.
@@ -279,7 +400,12 @@
            На последнем шаге — соберём из state текст претензии. */
         const state = {
             problem: null,      // 'defect' | 'wrong' | 'refused'
-            // дальше добавим: product, seller, description и т.д.
+            product: {          // данные о товаре с шага 3
+                name: '',
+                price: '',
+                date: ''
+            },
+            // дальше добавим: seller, description и т.д.
         };
 
         /* === Переключатель экранов ===
@@ -309,10 +435,62 @@
            Сейчас пока временно покажем alert — чтобы можно было проверить, что state работает. */
         function chooseProblem(buttonEl) {
             state.problem = buttonEl.dataset.value;
-            // console.log пишет в консоль браузера (F12 → вкладка Console).
-            // Полезно для проверки, что данные сохраняются правильно.
             console.log('состояние:', state);
-            alert('выбрали: ' + state.problem + '\nследующий экран будет на шаге 3');
+            // Теперь вместо alert идём на следующий экран — форму товара
+            goTo('screen-product');
+        }
+
+        /* === Сохранение данных о товаре + валидация ===
+           1) Находим все три инпута по id
+           2) Проверяем, что они не пустые
+           3) Если пустые — подсвечиваем красным и не идём дальше
+           4) Если всё ок — сохраняем в state.product и идём дальше */
+        function saveProduct() {
+            // document.getElementById находит элемент по его id
+            const nameInput = document.getElementById('product-name');
+            const priceInput = document.getElementById('product-price');
+            const dateInput = document.getElementById('product-date');
+
+            // .value.trim() — берём значение поля и убираем пробелы по краям.
+            // Без trim пользователь может ввести только пробелы и пройти валидацию.
+            const name = nameInput.value.trim();
+            const price = priceInput.value.trim();
+            const date = dateInput.value.trim();
+
+            // Сбрасываем предыдущие ошибки — на случай, если пользователь уже промахивался
+            nameInput.classList.remove('error');
+            priceInput.classList.remove('error');
+            dateInput.classList.remove('error');
+
+            // Проверяем каждое поле. hasError копит факт «есть ошибки»,
+            // чтобы подсветить все пустые поля сразу, а не только первое.
+            let hasError = false;
+
+            if (!name) {
+                nameInput.classList.add('error');
+                hasError = true;
+            }
+            if (!price) {
+                priceInput.classList.add('error');
+                hasError = true;
+            }
+            if (!date) {
+                dateInput.classList.add('error');
+                hasError = true;
+            }
+
+            // Если что-то не заполнено — выходим, не идём дальше
+            if (hasError) {
+                return;
+            }
+
+            // Всё хорошо — сохраняем и идём дальше.
+            // Дальше будет экран с реквизитами продавца (шаг 4).
+            state.product = { name: name, price: price, date: date };
+            console.log('состояние:', state);
+
+            // Заглушка до шага 4
+            alert('товар сохранён:\n' + name + '\n' + price + ' ₽\n' + date);
         }
     </script>
 
