@@ -95,7 +95,7 @@
             top: 0;
             left: 0;
             right: 0;
-            z-index: 100;
+            z-index: 110;
             padding: 16px 0;
             transition: background var(--transition), backdrop-filter var(--transition), border-color var(--transition);
             border-bottom: 1px solid transparent;
@@ -196,19 +196,48 @@
             overflow: hidden;
         }
 
-        /* Декоративный blob-фон — мягкое оранжевое свечение */
+        /* Декоративный blob-фон — мягкое оранжевое свечение.
+           Дрейфует по экрану + параллакс при скролле через --scroll-y. */
         .hero::before {
             content: "";
             position: absolute;
             top: -100px;
             left: 50%;
-            transform: translateX(-50%);
             width: 800px;
             height: 800px;
-            background: radial-gradient(circle, var(--accent-glow), transparent 60%);
+            background:
+                radial-gradient(circle at 30% 40%, rgba(255, 122, 0, 0.35), transparent 45%),
+                radial-gradient(circle at 70% 60%, rgba(255, 180, 60, 0.25), transparent 50%),
+                radial-gradient(circle at 50% 50%, var(--accent-glow), transparent 60%);
             filter: blur(80px);
             pointer-events: none;
             z-index: 0;
+            /* translateX(-50%) для центрирования + параллакс по Y */
+            transform: translate(-50%, calc(var(--scroll-y, 0px) * 0.35));
+            animation: blob-drift 14s ease-in-out infinite;
+            will-change: transform, filter;
+        }
+
+        @keyframes blob-drift {
+            0%, 100% { filter: blur(80px) hue-rotate(0deg); }
+            33%      { filter: blur(100px) hue-rotate(-10deg); }
+            66%      { filter: blur(90px) hue-rotate(8deg); }
+        }
+
+        /* Второй декоративный blob — добавляет глубину сцены */
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: 200px;
+            right: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 122, 0, 0.18), transparent 60%);
+            filter: blur(100px);
+            pointer-events: none;
+            z-index: 0;
+            transform: translateY(calc(var(--scroll-y, 0px) * 0.2));
+            animation: blob-drift 18s ease-in-out infinite reverse;
         }
 
         .hero-inner {
@@ -241,9 +270,21 @@
         }
 
         .accent {
-            color: var(--accent);
             position: relative;
             display: inline-block;
+            /* Анимированный градиент в тексте — оранжевый «переливается» */
+            background: linear-gradient(90deg, #ff7a00 0%, #ffb366 25%, #ff9633 50%, #ff7a00 75%, #ffb366 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+                    background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 5s linear infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
 
         .hero-subtitle {
@@ -1072,6 +1113,388 @@
             .doc-preview:hover { transform: scale(1.01); }
         }
 
+        /* ============================================================
+           ВАУ-ЭФФЕКТЫ: стаггер появления + усиленный glow на hover
+           ============================================================ */
+
+        /* Стаггер: карточки появляются по очереди.
+           Через nth-child добавляем задержку каждой следующей. */
+        .steps .step.reveal:nth-child(1) { transition-delay: 0.0s; }
+        .steps .step.reveal:nth-child(2) { transition-delay: 0.1s; }
+        .steps .step.reveal:nth-child(3) { transition-delay: 0.2s; }
+        .steps .step.reveal:nth-child(4) { transition-delay: 0.3s; }
+
+        .cards-3 .case-card.reveal:nth-child(1) { transition-delay: 0.0s; }
+        .cards-3 .case-card.reveal:nth-child(2) { transition-delay: 0.15s; }
+        .cards-3 .case-card.reveal:nth-child(3) { transition-delay: 0.3s; }
+
+        .reviews .review.reveal:nth-child(1) { transition-delay: 0.0s; }
+        .reviews .review.reveal:nth-child(2) { transition-delay: 0.15s; }
+        .reviews .review.reveal:nth-child(3) { transition-delay: 0.3s; }
+
+        .get-bullets.reveal li {
+            opacity: 0;
+            transform: translateX(-12px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .get-bullets.reveal.in li { opacity: 1; transform: translateX(0); }
+        .get-bullets.reveal.in li:nth-child(1) { transition-delay: 0.05s; }
+        .get-bullets.reveal.in li:nth-child(2) { transition-delay: 0.15s; }
+        .get-bullets.reveal.in li:nth-child(3) { transition-delay: 0.25s; }
+        .get-bullets.reveal.in li:nth-child(4) { transition-delay: 0.35s; }
+        .get-bullets.reveal.in li:nth-child(5) { transition-delay: 0.45s; }
+
+        /* Усиленные ховеры — оранжевое свечение из-под карточки */
+        .step,
+        .case-card,
+        .review {
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        border-color 0.3s,
+                        box-shadow 0.4s,
+                        background 0.3s;
+        }
+
+        .step:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(255, 122, 0, 0.25),
+                        0 0 0 1px var(--accent);
+            border-color: var(--accent);
+            background: linear-gradient(180deg, var(--bg-card), rgba(255, 122, 0, 0.05));
+        }
+
+        .case-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px -15px rgba(255, 122, 0, 0.35),
+                        0 0 0 1px var(--accent);
+        }
+
+        .review:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px -12px rgba(255, 122, 0, 0.2);
+            border-color: var(--accent);
+        }
+
+        /* CTA — добавляем «пульс» свечения при hover */
+        .cta {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
+            pointer-events: none;
+        }
+
+        .cta:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cta:hover {
+            box-shadow: 0 20px 50px rgba(255, 122, 0, 0.45),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* ============================================================
+           ИНТЕРАКТИВ: кнопка наверх, гамбургер, счётчики, форма
+           ============================================================ */
+
+        /* === Кнопка «наверх» === */
+        .to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 95;
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.8);
+            transition: opacity 0.3s, transform 0.3s, background 0.2s;
+            font-family: inherit;
+        }
+        .to-top.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+        .to-top:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px) scale(1.05);
+        }
+        /* На мобильном отключаем — там есть sticky-CTA внизу,
+           две плавающие кнопки одновременно — визуальный шум. */
+        @media (max-width: 768px) {
+            .to-top { display: none; }
+        }
+
+        /* === Гамбургер-иконка === */
+        .burger {
+            display: none;
+            width: 44px;
+            height: 44px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-family: inherit;
+            position: relative;
+            z-index: 110; /* выше mobile-menu, чтобы клик ловился */
+        }
+        .burger-bar {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--text);
+            margin: 5px auto;
+            transition: transform 0.3s, opacity 0.3s;
+            transform-origin: center;
+        }
+        .burger[aria-expanded="true"] .burger-bar:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .burger[aria-expanded="true"] .burger-bar:nth-child(2) {
+            opacity: 0;
+        }
+        .burger[aria-expanded="true"] .burger-bar:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        @media (max-width: 768px) {
+            .burger { display: block; }
+            /* Прячем мини-CTA в шапке на мобильном — её роль играет sticky-CTA */
+            .header .cta-small { display: none; }
+        }
+
+        /* === Мобильное меню (оверлей) === */
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 105;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-12px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .mobile-menu.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .mobile-menu a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 12px 24px;
+            transition: color 0.2s;
+        }
+        .mobile-menu a:hover { color: var(--accent); }
+        .mobile-menu .cta {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        /* Блокировка скролла под открытым меню */
+        body.menu-open { overflow: hidden; }
+
+        /* === Счётчики (stats) === */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .stat {
+            text-align: center;
+            padding: 24px 16px;
+        }
+        .stat-num {
+            font-size: clamp(36px, 6vw, 56px);
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: -0.02em;
+            display: block;
+            margin-bottom: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        @media (max-width: 700px) {
+            .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .stat { padding: 16px 8px; }
+        }
+
+        /* === Форма обратной связи === */
+        .contact {
+            max-width: 560px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        @media (max-width: 600px) {
+            .contact { padding: 24px 20px; }
+        }
+        .form-field {
+            margin-bottom: 18px;
+        }
+        .form-field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .form-field input,
+        .form-field textarea {
+            width: 100%;
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            font-size: 16px; /* 16px чтобы Safari не зумил на фокусе */
+            font-family: inherit;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .form-field input:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #1d1d1d;
+        }
+        .form-field input.error,
+        .form-field textarea.error {
+            border-color: var(--error);
+        }
+        .form-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-error {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+        .form-field.has-error .form-error { display: block; }
+
+        .form-submit {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Состояние «успех» — показываем поверх формы */
+        .form-success {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            text-align: center;
+        }
+        .contact.sent .form-success {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .contact.sent .form-inner {
+            opacity: 0.15;
+            filter: blur(2px);
+            pointer-events: none;
+            transition: opacity 0.4s, filter 0.4s;
+        }
+        .success-check {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0);
+            animation: pop-in 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .success-check svg {
+            width: 44px;
+            height: 44px;
+            stroke: white;
+            stroke-width: 4;
+            fill: none;
+            stroke-dasharray: 60;
+            stroke-dashoffset: 60;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation: draw 0.4s 0.4s ease forwards;
+        }
+        .contact.sent .success-title {
+            opacity: 0;
+            animation: fade-up 0.5s 0.5s ease forwards;
+        }
+        .contact.sent .success-text {
+            opacity: 0;
+            animation: fade-up 0.5s 0.65s ease forwards;
+        }
+        .success-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .success-text {
+            color: var(--text-muted);
+            font-size: 15px;
+            max-width: 380px;
+        }
+        @keyframes pop-in {
+            to { transform: scale(1); }
+        }
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         /* === Уважение к prefers-reduced-motion === */
         @media (prefers-reduced-motion: reduce) {
             *,
@@ -1096,14 +1519,38 @@
                 <span>претензия.ок</span>
             </a>
             <nav class="nav" aria-label="Основная навигация">
-                <a href="#how" class="nav-link">как это работает</a>
-                <a href="#cases" class="nav-link">ситуации</a>
-                <a href="#price" class="nav-link">цена</a>
-                <a href="#faq" class="nav-link">вопросы</a>
+                <a href="#how" class="nav-link">Как это работает</a>
+                <a href="#cases" class="nav-link">Ситуации</a>
+                <a href="#price" class="nav-link">Цена</a>
+                <a href="#faq" class="nav-link">Вопросы</a>
+                <a href="#contact" class="nav-link">Контакты</a>
             </nav>
-            <a href="claim-constructor/index.html" class="cta-small">составить</a>
+            <a href="claim-constructor/index.html" class="cta-small">Составить</a>
+
+            <!-- Гамбургер виден только на мобильном -->
+            <button class="burger" id="burger"
+                    aria-label="Открыть меню"
+                    aria-expanded="false"
+                    aria-controls="mobileMenu">
+                <span class="burger-bar" aria-hidden="true"></span>
+                <span class="burger-bar" aria-hidden="true"></span>
+                <span class="burger-bar" aria-hidden="true"></span>
+            </button>
         </div>
     </header>
+
+    <!-- === Мобильное меню (оверлей) === -->
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Мобильная навигация">
+        <a href="#how" data-close>Как это работает</a>
+        <a href="#cases" data-close>Ситуации</a>
+        <a href="#price" data-close>Цена</a>
+        <a href="#faq" data-close>Вопросы</a>
+        <a href="#contact" data-close>Контакты</a>
+        <a href="claim-constructor/index.html" class="cta" data-close>
+            Составить претензию
+            <span class="cta-arrow" aria-hidden="true">→</span>
+        </a>
+    </nav>
 
     <!-- ====================================================
          СЕКЦИЯ 1: HERO
@@ -1112,27 +1559,53 @@
         <div class="container hero-inner">
             <span class="eyebrow">AI-конструктор претензий</span>
             <h1>
-                магазин отказал в возврате?<br>
-                составим <span class="accent">грамотную претензию</span> за 7 минут
+                Магазин отказал в возврате?<br>
+                Составим <span class="accent">грамотную претензию</span> за 7 минут
             </h1>
             <p class="hero-subtitle">
-                ответите на несколько вопросов — получите готовый документ
+                Ответите на несколько вопросов — получите готовый документ
                 со ссылками на статьи закона и инструкцию, что делать дальше
             </p>
 
             <a href="claim-constructor/index.html" class="cta">
-                составить претензию
+                Составить претензию
                 <span class="cta-arrow" aria-hidden="true">→</span>
             </a>
 
-            <div class="hero-hint">бесплатно посмотреть превью — оплата только за PDF</div>
+            <div class="hero-hint">Бесплатно посмотреть превью — оплата только за PDF</div>
 
             <div class="badge" role="status">
                 <span class="pulse-dot" aria-hidden="true"></span>
-                готовы <strong>1 247 претензий</strong> за последний месяц
+                Готовы <strong>1 247 претензий</strong> за последний месяц
             </div>
 
-            <p class="disclaimer">это не юридическая консультация. мы помогаем оформить документ.</p>
+            <p class="disclaimer">Это не юридическая консультация. Мы помогаем оформить документ.</p>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ-СЧЁТЧИКИ
+         ==================================================== -->
+    <section style="padding: 40px 0;">
+        <div class="container">
+            <div class="stats reveal">
+                <div class="stat">
+                    <span class="stat-num" data-count="1247" data-suffix="">0</span>
+                    <span class="stat-label">претензий за последний месяц</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" data-count="60" data-suffix="%">0%</span>
+                    <span class="stat-label">споров решаются досудебно</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" data-count="10" data-suffix="">0</span>
+                    <span class="stat-label">дней даёт закон на ответ</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" data-count="7" data-suffix=" мин">0 мин</span>
+                    <span class="stat-label">занимает заполнение</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -1143,30 +1616,30 @@
         <div class="container">
             <div class="reveal">
                 <span class="section-num">01 / как это работает</span>
-                <h2>4 шага и претензия готова</h2>
-                <p class="section-subtitle">никакого юр.жаргона — простые вопросы, понятный результат</p>
+                <h2>4 шага — и претензия готова</h2>
+                <p class="section-subtitle">Никакого юр.жаргона — простые вопросы, понятный результат</p>
             </div>
 
             <div class="steps">
                 <div class="step reveal">
                     <span class="step-num">01</span>
-                    <h3 class="step-title">выберите ситуацию</h3>
-                    <p class="step-desc">брак, не подошёл или магазин отказал — нажмите подходящий вариант</p>
+                    <h3 class="step-title">Выберите ситуацию</h3>
+                    <p class="step-desc">Брак, не подошёл или магазин отказал — нажмите подходящий вариант</p>
                 </div>
                 <div class="step reveal">
                     <span class="step-num">02</span>
-                    <h3 class="step-title">заполните данные</h3>
-                    <p class="step-desc">что купили, у кого, когда — займёт 2 минуты</p>
+                    <h3 class="step-title">Заполните данные</h3>
+                    <p class="step-desc">Что купили, у кого, когда — займёт 2 минуты</p>
                 </div>
                 <div class="step reveal">
                     <span class="step-num">03</span>
-                    <h3 class="step-title">опишите своими словами</h3>
-                    <p class="step-desc">расскажите, что случилось — мы переведём в юридический формат</p>
+                    <h3 class="step-title">Опишите своими словами</h3>
+                    <p class="step-desc">Расскажите, что случилось — мы переведём в юридический формат</p>
                 </div>
                 <div class="step reveal">
                     <span class="step-num">04</span>
-                    <h3 class="step-title">получите документ</h3>
-                    <p class="step-desc">готовая претензия со ссылками на статьи закона и инструкцией</p>
+                    <h3 class="step-title">Получите документ</h3>
+                    <p class="step-desc">Готовая претензия со ссылками на статьи закона и инструкцией</p>
                 </div>
             </div>
         </div>
@@ -1179,8 +1652,8 @@
         <div class="container">
             <div class="reveal">
                 <span class="section-num">02 / результат</span>
-                <h2>на выходе — нормальный документ,<br>не «образец из интернета»</h2>
-                <p class="section-subtitle">шаблон, проверенный юристом по закону о защите прав потребителей</p>
+                <h2>На выходе — нормальный документ,<br>не «образец из интернета»</h2>
+                <p class="section-subtitle">Шаблон, проверенный юристом по Закону о защите прав потребителей</p>
             </div>
 
             <div class="get">
@@ -1203,11 +1676,11 @@
                 <ul class="get-bullets reveal">
                     <li>
                         <span class="check" aria-hidden="true">✓</span>
-                        ссылки на конкретные статьи ЗоЗПП (18, 22, 23 или 25 — под вашу ситуацию)
+                        Ссылки на конкретные статьи ЗоЗПП (18, 22, 23 или 25 — под вашу ситуацию)
                     </li>
                     <li>
                         <span class="check" aria-hidden="true">✓</span>
-                        расчёт неустойки (1% в день за просрочку ответа) — автоматически
+                        Расчёт неустойки (1% в день за просрочку ответа) — автоматически
                     </li>
                     <li>
                         <span class="check" aria-hidden="true">✓</span>
@@ -1215,11 +1688,11 @@
                     </li>
                     <li>
                         <span class="check" aria-hidden="true">✓</span>
-                        готов к печати на принтере, в двух экземплярах
+                        Готов к печати на принтере, в двух экземплярах
                     </li>
                     <li>
                         <span class="check" aria-hidden="true">✓</span>
-                        инструкция «что делать дальше»: куда нести, что просить, что делать если откажут
+                        Инструкция «что делать дальше»: куда нести, что просить, что делать если откажут
                     </li>
                 </ul>
             </div>
@@ -1233,31 +1706,31 @@
         <div class="container">
             <div class="reveal">
                 <span class="section-num">03 / ситуации</span>
-                <h2>поможем в трёх случаях</h2>
-                <p class="section-subtitle">самые частые причины, по которым люди составляют претензии</p>
+                <h2>Поможем в трёх случаях</h2>
+                <p class="section-subtitle">Самые частые причины, по которым люди составляют претензии</p>
             </div>
 
             <div class="cards-3">
                 <article class="case-card reveal">
                     <span class="case-emoji" aria-hidden="true">📦</span>
-                    <h3 class="case-title">товар бракованный</h3>
-                    <p class="case-desc">обнаружили дефект, не работает, разваливается. поможем вернуть деньги по статье 18 ЗоЗПП.</p>
+                    <h3 class="case-title">Товар бракованный</h3>
+                    <p class="case-desc">Обнаружили дефект, не работает, разваливается. Поможем вернуть деньги по статье 18 ЗоЗПП.</p>
                 </article>
                 <article class="case-card reveal">
                     <span class="case-emoji" aria-hidden="true">👕</span>
-                    <h3 class="case-title">товар не подошёл</h3>
-                    <p class="case-desc">не подошёл по размеру, цвету, фасону — товар целый. возврат по статье 25 в течение 14 дней.</p>
+                    <h3 class="case-title">Товар не подошёл</h3>
+                    <p class="case-desc">Не подошёл по размеру, цвету, фасону — товар целый. Возврат по статье 25 в течение 14 дней.</p>
                 </article>
                 <article class="case-card reveal">
                     <span class="case-emoji" aria-hidden="true">🚫</span>
-                    <h3 class="case-title">магазин отказал</h3>
-                    <p class="case-desc">отказали в магазине или на маркетплейсе. поможем составить жалобу со ссылками на закон.</p>
+                    <h3 class="case-title">Магазин отказал</h3>
+                    <p class="case-desc">Отказали в магазине или на маркетплейсе. Поможем составить жалобу со ссылками на закон.</p>
                 </article>
             </div>
 
             <div class="center-cta reveal">
                 <a href="claim-constructor/index.html" class="cta">
-                    моя ситуация здесь — составить претензию
+                    Моя ситуация здесь — составить претензию
                     <span class="cta-arrow" aria-hidden="true">→</span>
                 </a>
             </div>
@@ -1271,27 +1744,27 @@
         <div class="container">
             <div class="reveal">
                 <span class="section-num">04 / отличия</span>
-                <h2>чем мы лучше бесплатного образца</h2>
-                <p class="section-subtitle">образцы из гугла — это универсальный шаблон. мы — конструктор под вашу ситуацию.</p>
+                <h2>Чем мы лучше бесплатного образца</h2>
+                <p class="section-subtitle">Образцы из Гугла — это универсальный шаблон. Мы — конструктор под вашу ситуацию.</p>
             </div>
 
             <div class="compare reveal">
                 <div class="compare-col bad">
-                    <div class="compare-title">образец из гугла</div>
+                    <div class="compare-title">Образец из Гугла</div>
                     <ul class="compare-list">
-                        <li>универсальный шаблон</li>
-                        <li>нужно самому вписать ИНН, адрес, статьи</li>
-                        <li>не знаете, что писать в описании</li>
-                        <li>после «скачать» — пустота</li>
+                        <li>Универсальный шаблон</li>
+                        <li>Нужно самому вписать ИНН, адрес, статьи</li>
+                        <li>Не знаете, что писать в описании</li>
+                        <li>После «скачать» — пустота</li>
                     </ul>
                 </div>
                 <div class="compare-col good">
-                    <div class="compare-title">наш конструктор</div>
+                    <div class="compare-title">Наш конструктор</div>
                     <ul class="compare-list">
-                        <li>подбираем шаблон под вашу ситуацию</li>
-                        <li>подставляем данные продавца по ИНН автоматически</li>
-                        <li>подсказываем формулировки, проверяем длину</li>
-                        <li>даём инструкцию «что делать дальше»</li>
+                        <li>Подбираем шаблон под вашу ситуацию</li>
+                        <li>Подставляем данные продавца по ИНН автоматически</li>
+                        <li>Подсказываем формулировки, проверяем длину</li>
+                        <li>Даём инструкцию «что делать дальше»</li>
                     </ul>
                 </div>
             </div>
@@ -1305,8 +1778,8 @@
         <div class="container">
             <div class="reveal" style="text-align: center;">
                 <span class="section-num">05 / цена</span>
-                <h2>бесплатно посмотреть,<br>оплата только за результат</h2>
-                <p class="section-subtitle" style="margin-left: auto; margin-right: auto;">никаких скрытых платежей и подписок</p>
+                <h2>Бесплатно посмотреть,<br>оплата только за результат</h2>
+                <p class="section-subtitle" style="margin-left: auto; margin-right: auto;">Никаких скрытых платежей и подписок</p>
             </div>
 
             <div class="price-card reveal">
@@ -1314,19 +1787,19 @@
                 <div class="price-label">за PDF готовой претензии</div>
 
                 <ul class="price-includes">
-                    <li><span class="check" aria-hidden="true">✓</span> готовый документ A4 со всеми вашими данными</li>
-                    <li><span class="check" aria-hidden="true">✓</span> ссылки на конкретные статьи закона</li>
-                    <li><span class="check" aria-hidden="true">✓</span> инструкция «что делать дальше»</li>
-                    <li><span class="check" aria-hidden="true">✓</span> расчёт неустойки</li>
+                    <li><span class="check" aria-hidden="true">✓</span> Готовый документ A4 со всеми вашими данными</li>
+                    <li><span class="check" aria-hidden="true">✓</span> Ссылки на конкретные статьи закона</li>
+                    <li><span class="check" aria-hidden="true">✓</span> Инструкция «что делать дальше»</li>
+                    <li><span class="check" aria-hidden="true">✓</span> Расчёт неустойки</li>
                 </ul>
 
                 <a href="claim-constructor/index.html" class="cta" style="width: 100%; justify-content: center;">
-                    начать бесплатно
+                    Начать бесплатно
                     <span class="cta-arrow" aria-hidden="true">→</span>
                 </a>
 
                 <div class="price-guarantee">
-                    ✓ возврат денег, если документ не подойдёт по нашей ошибке
+                    ✓ Возврат денег, если документ не подойдёт по нашей ошибке
                 </div>
             </div>
         </div>
@@ -1339,8 +1812,8 @@
         <div class="container">
             <div class="reveal">
                 <span class="section-num">06 / отзывы</span>
-                <h2>уже помогли вернуть деньги</h2>
-                <p class="section-subtitle">истории людей, которые столкнулись с проблемой и решили её</p>
+                <h2>Уже помогли вернуть деньги</h2>
+                <p class="section-subtitle">Истории людей, которые столкнулись с проблемой и решили её</p>
             </div>
 
             <div class="reviews">
@@ -1356,7 +1829,7 @@
                         Ozon отказал в возврате наушников. Составил претензию за 10 минут, отнёс в пункт выдачи — деньги вернули через неделю.
                     </div>
                     <div class="review-result">
-                        <span aria-hidden="true">💰</span> вернул 6 990 ₽
+                        <span aria-hidden="true">💰</span> Вернул 6 990 ₽
                     </div>
                 </article>
 
@@ -1372,7 +1845,7 @@
                         Думала, придётся идти к юристу. Тут — заполнила форму, распечатала, отнесла. Получилось без чьей-либо помощи.
                     </div>
                     <div class="review-result">
-                        <span aria-hidden="true">💰</span> вернула 24 990 ₽
+                        <span aria-hidden="true">💰</span> Вернула 24 990 ₽
                     </div>
                 </article>
 
@@ -1388,7 +1861,7 @@
                         М.Видео уверяли, что брак — это «не гарантийный случай». После претензии со ссылками на 18 статью — поменяли тон сразу.
                     </div>
                     <div class="review-result">
-                        <span aria-hidden="true">💰</span> вернул 89 990 ₽
+                        <span aria-hidden="true">💰</span> Вернул 89 990 ₽
                     </div>
                 </article>
             </div>
@@ -1402,59 +1875,109 @@
         <div class="container">
             <div class="reveal" style="text-align: center;">
                 <span class="section-num">07 / вопросы</span>
-                <h2>частые вопросы</h2>
-                <p class="section-subtitle" style="margin: 0 auto 48px;">если не нашли ответа — напишите в Telegram</p>
+                <h2>Частые вопросы</h2>
+                <p class="section-subtitle" style="margin: 0 auto 48px;">Если не нашли ответа — напишите в Telegram</p>
             </div>
 
             <div class="faq reveal">
                 <details>
-                    <summary>это не «развод»? почему вы берёте деньги за то, что есть в интернете бесплатно?</summary>
+                    <summary>Это не «развод»? Почему вы берёте деньги за то, что есть в интернете бесплатно?</summary>
                     <div class="faq-answer">
-                        образцы в интернете — универсальные шаблоны. мы подбираем шаблон под вашу ситуацию, подставляем реквизиты по ИНН, проверяем длину описания, даём инструкцию что делать дальше. и платите только за результат — превью бесплатно.
+                        Образцы в интернете — универсальные шаблоны. Мы подбираем шаблон под вашу ситуацию, подставляем реквизиты по ИНН, проверяем длину описания, даём инструкцию что делать дальше. И платите только за результат — превью бесплатно.
                     </div>
                 </details>
 
                 <details>
-                    <summary>что если я заполнил, а документ не подошёл?</summary>
+                    <summary>Что если я заполнил, а документ не подошёл?</summary>
                     <div class="faq-answer">
-                        если мы ошиблись в шаблоне или подстановке — вернём деньги. если ваш случай оказался нестандартным (не возврат товара, а например ЖКХ) — предупредим заранее, перед оплатой.
+                        Если мы ошиблись в шаблоне или подстановке — вернём деньги. Если ваш случай оказался нестандартным (не возврат товара, а например ЖКХ) — предупредим заранее, перед оплатой.
                     </div>
                 </details>
 
                 <details>
-                    <summary>это считается официальной претензией? её примут в магазине?</summary>
+                    <summary>Это считается официальной претензией? Её примут в магазине?</summary>
                     <div class="faq-answer">
-                        да. документ оформлен по стандартам, со ссылками на конкретные статьи Закона о защите прав потребителей. распечатываете в двух экземплярах — один отдаёте в магазин, на втором просите поставить отметку о вручении.
+                        Да. Документ оформлен по стандартам, со ссылками на конкретные статьи Закона о защите прав потребителей. Распечатываете в двух экземплярах — один отдаёте в магазин, на втором просите поставить отметку о вручении.
                     </div>
                 </details>
 
                 <details>
-                    <summary>что если магазин не ответит?</summary>
+                    <summary>Что если магазин не ответит?</summary>
                     <div class="faq-answer">
-                        у продавца 10 дней на ответ по закону. если ответа нет или отказ — следующий шаг: жалоба в Роспотребнадзор или иск в суд. инструкция входит в документ.
+                        У продавца 10 дней на ответ по закону. Если ответа нет или отказ — следующий шаг: жалоба в Роспотребнадзор или иск в суд. Инструкция входит в документ.
                     </div>
                 </details>
 
                 <details>
-                    <summary>что вы делаете с моими персональными данными?</summary>
+                    <summary>Что вы делаете с моими персональными данными?</summary>
                     <div class="faq-answer">
-                        ФИО и адрес используются только для подстановки в шапку претензии. мы не храним документы после генерации. подробнее — в политике конфиденциальности.
+                        ФИО и адрес используются только для подстановки в шапку претензии. Мы не храним документы после генерации. Подробнее — в политике конфиденциальности.
                     </div>
                 </details>
 
                 <details>
-                    <summary>нужно ли быть юристом, чтобы пользоваться?</summary>
+                    <summary>Нужно ли быть юристом, чтобы пользоваться?</summary>
                     <div class="faq-answer">
-                        нет. конструктор задаёт вопросы простым языком, в юридический формат переводим мы.
+                        Нет. Конструктор задаёт вопросы простым языком, в юридический формат переводим мы.
                     </div>
                 </details>
 
                 <details>
-                    <summary>подходит ли для маркетплейсов (Ozon, WB, Я.Маркет)?</summary>
+                    <summary>Подходит ли для маркетплейсов (Ozon, WB, Я.Маркет)?</summary>
                     <div class="faq-answer">
-                        да. подставим продавца по ИНН из реестра — это работает и для маркетплейсов. ситуации с «отказ через интерфейс маркетплейса» — отдельный сценарий в конструкторе.
+                        Да. Подставим продавца по ИНН из реестра — это работает и для маркетплейсов. Ситуации с «отказ через интерфейс маркетплейса» — отдельный сценарий в конструкторе.
                     </div>
                 </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ: ФОРМА ОБРАТНОЙ СВЯЗИ
+         ==================================================== -->
+    <section id="contact">
+        <div class="container">
+            <div class="reveal" style="text-align: center;">
+                <span class="section-num">08 / связаться</span>
+                <h2>Остались вопросы?</h2>
+                <p class="section-subtitle" style="margin: 0 auto 48px;">Напишите — ответим в течение рабочего дня</p>
+            </div>
+
+            <div class="contact reveal" id="contactBox">
+                <form class="form-inner" id="contactForm" novalidate>
+                    <div class="form-field" id="field-name">
+                        <label for="cf-name">Ваше имя</label>
+                        <input type="text" id="cf-name" name="name" autocomplete="name" required>
+                        <div class="form-error">Напишите, как к вам обращаться</div>
+                    </div>
+
+                    <div class="form-field" id="field-email">
+                        <label for="cf-email">Email</label>
+                        <input type="email" id="cf-email" name="email" autocomplete="email" required inputmode="email">
+                        <div class="form-error">Похоже, в email опечатка</div>
+                    </div>
+
+                    <div class="form-field" id="field-message">
+                        <label for="cf-message">Сообщение</label>
+                        <textarea id="cf-message" name="message" required></textarea>
+                        <div class="form-error">Опишите вопрос — хотя бы пару слов</div>
+                    </div>
+
+                    <button type="submit" class="cta form-submit" id="formSubmit">
+                        <span class="submit-text">Отправить</span>
+                        <span class="cta-arrow" aria-hidden="true">→</span>
+                    </button>
+                </form>
+
+                <div class="form-success" role="status" aria-live="polite">
+                    <div class="success-check" aria-hidden="true">
+                        <svg viewBox="0 0 50 50">
+                            <polyline points="10,26 22,38 40,16"></polyline>
+                        </svg>
+                    </div>
+                    <div class="success-title">Сообщение отправлено!</div>
+                    <div class="success-text">Спасибо. Мы ответим на ваш email в течение рабочего дня.</div>
+                </div>
             </div>
         </div>
     </section>
@@ -1464,20 +1987,20 @@
          ==================================================== -->
     <section class="final">
         <div class="container final-inner reveal">
-            <h2>у вас 10 дней.<br>чем раньше отправите — тем быстрее вернут деньги.</h2>
+            <h2>у вас 10 дней.<br>Чем раньше отправите — тем быстрее вернут деньги.</h2>
             <p class="final-subtitle">
-                закон даёт продавцу 10 дней на ответ с даты вручения претензии.
-                чем раньше начнёте — тем меньше шансов, что ситуация затянется.
+                Закон даёт продавцу 10 дней на ответ с даты вручения претензии.
+                Чем раньше начнёте — тем меньше шансов, что ситуация затянется.
             </p>
 
             <a href="claim-constructor/index.html" class="cta">
-                составить претензию — 7 минут
+                Составить претензию — 7 минут
                 <span class="cta-arrow" aria-hidden="true">→</span>
             </a>
 
             <p class="final-hint">
-                бесплатно посмотреть превью — оплата только за PDF, 199 ₽<br>
-                отвечаем в <a href="#">Telegram</a>, если возникнут вопросы
+                Бесплатно посмотреть превью — оплата только за PDF, 199 ₽<br>
+                Отвечаем в <a href="#">Telegram</a>, если возникнут вопросы
             </p>
         </div>
     </section>
@@ -1489,16 +2012,16 @@
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <div class="footer-title">продукт</div>
+                    <div class="footer-title">Продукт</div>
                     <ul class="footer-list">
-                        <li><a href="#how">как это работает</a></li>
-                        <li><a href="#price">цена</a></li>
-                        <li><a href="#cases">ситуации</a></li>
-                        <li><a href="#faq">вопросы</a></li>
+                        <li><a href="#how">Как это работает</a></li>
+                        <li><a href="#price">Цена</a></li>
+                        <li><a href="#cases">Ситуации</a></li>
+                        <li><a href="#faq">Вопросы</a></li>
                     </ul>
                 </div>
                 <div>
-                    <div class="footer-title">контакты</div>
+                    <div class="footer-title">Контакты</div>
                     <ul class="footer-list">
                         <li><a href="#">Telegram-канал поддержки</a></li>
                         <li><a href="mailto:hello@example.com">hello@example.com</a></li>
@@ -1506,10 +2029,10 @@
                     <div class="footer-time" id="local-time" aria-live="off"></div>
                 </div>
                 <div>
-                    <div class="footer-title">документы</div>
+                    <div class="footer-title">Документы</div>
                     <ul class="footer-list">
-                        <li><a href="#">политика конфиденциальности</a></li>
-                        <li><a href="#">оферта</a></li>
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Оферта</a></li>
                         <li><a href="#">ИП Иванов И.И., ИНН 770000000000</a></li>
                     </ul>
                 </div>
@@ -1517,13 +2040,16 @@
 
             <div class="footer-bottom">
                 <div>© 2026 претензия.ок</div>
-                <div>это не юридическая консультация. ответственность за использование документа — на вас.</div>
+                <div>Это не юридическая консультация. Ответственность за использование документа — на вас.</div>
             </div>
         </div>
     </footer>
 
+    <!-- Кнопка «наверх» -->
+    <button class="to-top" id="toTop" aria-label="Наверх" title="Наверх">↑</button>
+
     <!-- Sticky-CTA для мобильных -->
-    <a href="claim-constructor/index.html" class="sticky-cta" id="stickyCta">составить претензию →</a>
+    <a href="claim-constructor/index.html" class="sticky-cta" id="stickyCta">Составить претензию →</a>
 
     <script>
         /* ============================================================
@@ -1532,12 +2058,24 @@
         const header = document.getElementById('header');
         const stickyCta = document.getElementById('stickyCta');
 
+        /* rAF-троттлинг: обновляем CSS-переменную --scroll-y только раз
+           в кадр. Без троттлинга параллакс лагает на слабых устройствах. */
+        let ticking = false;
+        const root = document.documentElement;
+
         function onScroll() {
-            const y = window.scrollY;
-            // Фон шапки после 40px прокрутки
-            header.classList.toggle('scrolled', y > 40);
-            // Sticky-CTA появляется после первого экрана (~600px)
-            stickyCta.classList.toggle('show', y > 600);
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function() {
+                const y = window.scrollY;
+                // Параллакс: blob в hero сдвигается медленнее основного контента
+                root.style.setProperty('--scroll-y', y + 'px');
+                // Фон шапки после 40px прокрутки
+                header.classList.toggle('scrolled', y > 40);
+                // Sticky-CTA появляется после первого экрана (~600px)
+                stickyCta.classList.toggle('show', y > 600);
+                ticking = false;
+            });
         }
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
@@ -1598,6 +2136,164 @@
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
+
+        /* ============================================================
+           5) Кнопка «наверх»
+           ============================================================ */
+        const toTop = document.getElementById('toTop');
+        if (toTop) {
+            // Показываем после 600px прокрутки. Логика встроена в onScroll выше
+            // через отдельный observer тут, чтобы не плодить вызовы.
+            window.addEventListener('scroll', function() {
+                toTop.classList.toggle('show', window.scrollY > 600);
+            }, { passive: true });
+
+            toTop.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        /* ============================================================
+           6) Мобильное меню (гамбургер)
+           ============================================================ */
+        const burger = document.getElementById('burger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        function setMenu(open) {
+            if (!burger || !mobileMenu) return;
+            burger.setAttribute('aria-expanded', String(open));
+            burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+            mobileMenu.classList.toggle('open', open);
+            document.body.classList.toggle('menu-open', open);
+        }
+
+        if (burger) {
+            burger.addEventListener('click', function() {
+                const isOpen = burger.getAttribute('aria-expanded') === 'true';
+                setMenu(!isOpen);
+            });
+        }
+
+        // Закрываем меню при клике по ссылке внутри
+        document.querySelectorAll('.mobile-menu [data-close]').forEach(function(a) {
+            a.addEventListener('click', function() { setMenu(false); });
+        });
+
+        // Закрываем на Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') setMenu(false);
+        });
+
+        /* ============================================================
+           7) Счётчики — плавный count-up при появлении
+           ============================================================ */
+        const counters = document.querySelectorAll('.stat-num');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function animateCount(el) {
+            const target = parseInt(el.dataset.count, 10);
+            const suffix = el.dataset.suffix || '';
+
+            if (prefersReducedMotion || isNaN(target)) {
+                el.textContent = target + suffix;
+                return;
+            }
+
+            const duration = 1400; // мс
+            const start = performance.now();
+
+            function tick(now) {
+                const t = Math.min(1, (now - start) / duration);
+                // easeOutQuad — быстро в начале, замедление в конце
+                const eased = 1 - (1 - t) * (1 - t);
+                const value = Math.round(target * eased);
+                // Форматируем число: 1247 → 1 247 (узкий пробел)
+                el.textContent = value.toLocaleString('ru-RU') + suffix;
+                if (t < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        if ('IntersectionObserver' in window && counters.length) {
+            const countIO = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        animateCount(entry.target);
+                        countIO.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.4 });
+            counters.forEach(function(c) { countIO.observe(c); });
+        } else {
+            // Фоллбэк — просто показываем финальное число
+            counters.forEach(function(c) {
+                c.textContent = c.dataset.count + (c.dataset.suffix || '');
+            });
+        }
+
+        /* ============================================================
+           8) Форма обратной связи (без реальной отправки)
+           ============================================================ */
+        const form = document.getElementById('contactForm');
+        const contactBox = document.getElementById('contactBox');
+        const submitBtn = document.getElementById('formSubmit');
+
+        function validateEmail(s) {
+            // Простая, но рабочая проверка email — буквы@буквы.домен
+            return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+        }
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const name = form.elements['name'].value.trim();
+                const email = form.elements['email'].value.trim();
+                const message = form.elements['message'].value.trim();
+
+                // Сбрасываем прежние ошибки
+                ['field-name','field-email','field-message'].forEach(function(id) {
+                    document.getElementById(id).classList.remove('has-error');
+                    document.getElementById(id).querySelector('input, textarea').classList.remove('error');
+                });
+
+                let firstError = null;
+
+                if (!name) {
+                    document.getElementById('field-name').classList.add('has-error');
+                    document.getElementById('cf-name').classList.add('error');
+                    firstError = firstError || document.getElementById('cf-name');
+                }
+                if (!validateEmail(email)) {
+                    document.getElementById('field-email').classList.add('has-error');
+                    document.getElementById('cf-email').classList.add('error');
+                    firstError = firstError || document.getElementById('cf-email');
+                }
+                if (!message) {
+                    document.getElementById('field-message').classList.add('has-error');
+                    document.getElementById('cf-message').classList.add('error');
+                    firstError = firstError || document.getElementById('cf-message');
+                }
+
+                if (firstError) {
+                    firstError.focus();
+                    return;
+                }
+
+                // Имитация отправки — небольшая задержка, чтобы было ощущение «процесса»
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.submit-text').textContent = 'Отправляем…';
+
+                setTimeout(function() {
+                    contactBox.classList.add('sent');
+                    // На случай, если пользователь снова откроет форму — пусть кнопка вернётся
+                    setTimeout(function() {
+                        submitBtn.disabled = false;
+                        submitBtn.querySelector('.submit-text').textContent = 'Отправить';
+                    }, 500);
+                }, 600);
+            });
+        }
     </script>
 </body>
 </html>
