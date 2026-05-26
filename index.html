@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff7a00">
+    <meta name="description" content="AI-конструктор претензий: составьте грамотную претензию за 7 минут со ссылками на статьи закона и инструкцией, что делать дальше.">
+
+    <meta property="og:title" content="Конструктор претензий — составьте претензию за 7 минут">
+    <meta property="og:description" content="Магазин отказал в возврате? Поможем составить грамотную претензию со ссылками на закон.">
+    <meta property="og:type" content="website">
+
+    <title>Конструктор претензий — составьте претензию за 7 минут</title>
+
+    <style>
+        /* ============================================================
+           ПЕРЕМЕННЫЕ И СБРОС
+           ============================================================ */
+        :root {
+            --bg: #1a1a1a;
+            --bg-alt: #222;
+            --bg-card: #2a2a2a;
+            --text: #e8e8e8;
+            --text-muted: #b0b0b0;
+            --text-dim: #888;
+            --accent: #ff7a00;
+            --accent-hover: #ff9633;
+            --accent-glow: rgba(255, 122, 0, 0.25);
+            --border: #2a2a2a;
+            --success: #4caf50;
+            --error: #ff4444;
+            --paper: #f5f5f0;
+            --paper-text: #1a1a1a;
+            --radius: 8px;
+            --radius-lg: 16px;
+            --container: 1100px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            /* отступ под фиксированную шапку при якорной навигации */
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Утилита: контейнер с ограниченной шириной */
+        .container {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Скрыто визуально, но доступно для скринридеров */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Видимый фокус — оранжевая рамка для tab-навигации */
+        a:focus-visible,
+        button:focus-visible,
+        summary:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        /* ============================================================
+           ШАПКА (фиксированная)
+           ============================================================ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            transition: background var(--transition), backdrop-filter var(--transition), border-color var(--transition);
+            border-bottom: 1px solid transparent;
+        }
+
+        .header.scrolled {
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom-color: var(--border);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-mark {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo-mark::after {
+            content: "§";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg);
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+        }
+
+        .header .cta-small {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background var(--transition), transform var(--transition);
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .header .cta-small:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-link { display: none; }
+        }
+
+        /* ============================================================
+           HERO
+           ============================================================ */
+        .hero {
+            position: relative;
+            padding: 160px 0 100px;
+            overflow: hidden;
+        }
+
+        /* Декоративный blob-фон — мягкое оранжевое свечение */
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow), transparent 60%);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            padding: 6px 14px;
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+        }
+
+        h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .accent {
+            color: var(--accent);
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(16px, 2.5vw, 20px);
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === Главная CTA-кнопка === */
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--accent);
+            color: var(--bg);
+            font-size: 18px;
+            font-weight: 700;
+            padding: 18px 36px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            min-height: 56px;
+            text-decoration: none;
+            transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            font-family: inherit;
+        }
+
+        .cta:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        .cta:active {
+            transform: translateY(0);
+        }
+
+        .cta-arrow {
+            transition: transform 0.2s;
+        }
+
+        .cta:hover .cta-arrow {
+            transform: translateX(4px);
+        }
+
+        .hero-hint {
+            margin-top: 18px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* === Бейдж «1 247 претензий» с пульсирующей точкой === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 32px;
+            padding: 10px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .pulse-dot::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.4;
+            animation: pulse 2s ease-out infinite;
+        }
+
+        @keyframes pulse {
+            0%   { transform: scale(0.8); opacity: 0.5; }
+            70%  { transform: scale(2);   opacity: 0; }
+            100% { transform: scale(2);   opacity: 0; }
+        }
+
+        .badge strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .disclaimer {
+            margin-top: 28px;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* ============================================================
+           ОБЩИЕ СТИЛИ СЕКЦИЙ
+           ============================================================ */
+        section {
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .section-alt {
+            background: var(--bg-alt);
+        }
+
+        .section-num {
+            display: block;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .section-subtitle {
+            font-size: 17px;
+            color: var(--text-muted);
+            margin-bottom: 48px;
+            max-width: 640px;
+        }
+
+        /* === Анимация появления секций при скролле === */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 2: КАК ЭТО РАБОТАЕТ
+           ============================================================ */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .step {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            transition: border-color var(--transition), transform var(--transition);
+        }
+
+        .step:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .step-num {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .steps { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 520px) {
+            .steps { grid-template-columns: 1fr; }
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 3: ЧТО ВЫ ПОЛУЧИТЕ
+           ============================================================ */
+        .get {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .get { grid-template-columns: 1fr; gap: 32px; }
+        }
+
+        /* Имитация листа A4 — заглушка документа */
+        .doc-preview {
+            background: var(--paper);
+            color: var(--paper-text);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+            transform: rotate(-1deg);
+            transition: transform 0.4s ease;
+            position: relative;
+        }
+
+        .doc-preview:hover {
+            transform: rotate(0) scale(1.02);
+        }
+
+        .doc-preview::before {
+            content: "превью";
+            position: absolute;
+            top: 16px;
+            right: -8px;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 4px 12px;
+            font-family: -apple-system, sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 3px;
+            transform: rotate(8deg);
+        }
+
+        .doc-header {
+            font-weight: 700;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .doc-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 20px 0 16px;
+            letter-spacing: 2px;
+        }
+
+        .doc-body {
+            color: #444;
+        }
+
+        .doc-body .highlight {
+            background: rgba(255, 122, 0, 0.25);
+            padding: 0 2px;
+        }
+
+        .get-bullets {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .get-bullets li {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            font-size: 16px;
+        }
+
+        .check {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 4: ДЛЯ КАКИХ СИТУАЦИЙ
+           ============================================================ */
+        .cards-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        @media (max-width: 900px) {
+            .cards-3 { grid-template-columns: 1fr; }
+        }
+
+        .case-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .case-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .case-emoji {
+            font-size: 36px;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .case-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .case-desc {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .center-cta {
+            text-align: center;
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 5: ПОЧЕМУ НЕ «ОБРАЗЕЦ ИЗ ГУГЛА»
+           ============================================================ */
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        @media (max-width: 700px) {
+            .compare { grid-template-columns: 1fr; }
+        }
+
+        .compare-col {
+            padding: 28px;
+        }
+
+        .compare-col.bad {
+            background: var(--bg);
+            border-right: 1px solid var(--border);
+        }
+
+        .compare-col.good {
+            background: linear-gradient(135deg, rgba(255,122,0,0.08), rgba(255,122,0,0.02));
+            position: relative;
+        }
+
+        .compare-col.good::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        @media (max-width: 700px) {
+            .compare-col.bad { border-right: none; border-bottom: 1px solid var(--border); }
+        }
+
+        .compare-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .compare-col.bad .compare-title { color: var(--text-dim); }
+        .compare-col.good .compare-title { color: var(--accent); }
+
+        .compare-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .compare-list li {
+            padding-left: 28px;
+            position: relative;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .compare-col.good .compare-list li {
+            color: var(--text);
+        }
+
+        .compare-col.bad .compare-list li::before {
+            content: "✕";
+            position: absolute;
+            left: 0;
+            color: var(--text-dim);
+            font-weight: 700;
+        }
+
+        .compare-col.good .compare-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 6: ЦЕНА
+           ============================================================ */
+        .price-card {
+            max-width: 480px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, var(--bg-card), var(--bg));
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,122,0,0.1);
+        }
+
+        .price-card::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius-lg);
+            padding: 1px;
+            background: linear-gradient(135deg, var(--accent), transparent 50%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .price-amount {
+            font-size: 64px;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .price-label {
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        .price-includes {
+            list-style: none;
+            padding: 0;
+            margin: 28px 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .price-includes li {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            font-size: 15px;
+        }
+
+        .price-guarantee {
+            margin-top: 20px;
+            padding: 14px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: var(--radius);
+            font-size: 14px;
+            color: var(--success);
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 7: ОТЗЫВЫ
+           ============================================================ */
+        .reviews {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .reviews { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+        }
+
+        /* Карточка-стилизация под мессенджер */
+        .review {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid var(--border);
+            transition: transform var(--transition);
+        }
+
+        .review:hover {
+            transform: translateY(-4px);
+        }
+
+        .review-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Заглушка аватара — градиентный кружок с инициалами */
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .avatar.a1 { background: linear-gradient(135deg, #ff7a00, #ff4444); }
+        .avatar.a2 { background: linear-gradient(135deg, #ff9633, #ffcc00); }
+        .avatar.a3 { background: linear-gradient(135deg, #ff7a00, #aa4400); }
+
+        .review-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .review-meta {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        /* Текст отзыва — стилизован как сообщение в мессенджере */
+        .review-bubble {
+            background: var(--bg);
+            border-radius: 14px 14px 14px 4px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text);
+            position: relative;
+        }
+
+        .review-result {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 8: FAQ
+           ============================================================ */
+        .faq {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .faq details {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: border-color var(--transition);
+        }
+
+        .faq details[open] {
+            border-color: var(--accent);
+        }
+
+        .faq summary {
+            cursor: pointer;
+            padding: 20px 24px;
+            font-weight: 600;
+            font-size: 16px;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            user-select: none;
+            transition: background var(--transition);
+        }
+
+        .faq summary:hover {
+            background: rgba(255, 122, 0, 0.05);
+        }
+
+        .faq summary::-webkit-details-marker { display: none; }
+
+        /* Иконка + / − */
+        .faq summary::after {
+            content: "+";
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--accent);
+            transition: transform 0.2s;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .faq details[open] summary::after {
+            content: "−";
+        }
+
+        .faq-answer {
+            padding: 0 24px 20px;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* ============================================================
+           СЕКЦИЯ 9: ФИНАЛЬНЫЙ CTA
+           ============================================================ */
+        .final {
+            text-align: center;
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow), transparent 60%);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .final-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .final h2 {
+            font-size: clamp(28px, 5vw, 44px);
+            margin-bottom: 20px;
+        }
+
+        .final-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .final-hint {
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .final-hint a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .final-hint a:hover { text-decoration: underline; }
+
+        /* ============================================================
+           ФУТЕР
+           ============================================================ */
+        .footer {
+            background: var(--bg-alt);
+            padding: 60px 0 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 700px) {
+            .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+        }
+
+        .footer-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+
+        .footer-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-list a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color var(--transition);
+        }
+
+        .footer-list a:hover { color: var(--accent); }
+
+        .footer-time {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        /* ============================================================
+           STICKY-CTA НА МОБИЛЬНОМ
+           ============================================================ */
+        .sticky-cta {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 90;
+            display: none;
+            background: var(--accent);
+            color: var(--bg);
+            text-align: center;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateY(80px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .sticky-cta.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .sticky-cta { display: block; }
+            /* отступ снизу страницы, чтобы sticky не перекрывал контент */
+            .footer { padding-bottom: 100px; }
+        }
+
+        /* ============================================================
+           АДАПТИВ — общие правки
+           ============================================================ */
+        @media (max-width: 600px) {
+            .hero { padding: 130px 0 60px; }
+            section { padding: 60px 0; }
+            .cta { font-size: 16px; padding: 16px 28px; width: 100%; justify-content: center; }
+            .container { padding: 0 16px; }
+            .doc-preview { padding: 24px 20px; transform: none; }
+            .doc-preview:hover { transform: scale(1.01); }
+        }
+
+        /* === Уважение к prefers-reduced-motion === */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            .reveal { opacity: 1; transform: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- === ШАПКА === -->
+    <header class="header" id="header">
+        <div class="container header-inner">
+            <a href="#" class="logo" aria-label="На главную">
+                <span class="logo-mark" aria-hidden="true"></span>
+                <span>претензия.ок</span>
+            </a>
+            <nav class="nav" aria-label="Основная навигация">
+                <a href="#how" class="nav-link">как это работает</a>
+                <a href="#cases" class="nav-link">ситуации</a>
+                <a href="#price" class="nav-link">цена</a>
+                <a href="#faq" class="nav-link">вопросы</a>
+            </nav>
+            <a href="claim-constructor/index.html" class="cta-small">составить</a>
+        </div>
+    </header>
+
+    <!-- ====================================================
+         СЕКЦИЯ 1: HERO
+         ==================================================== -->
+    <section class="hero">
+        <div class="container hero-inner">
+            <span class="eyebrow">AI-конструктор претензий</span>
+            <h1>
+                магазин отказал в возврате?<br>
+                составим <span class="accent">грамотную претензию</span> за 7 минут
+            </h1>
+            <p class="hero-subtitle">
+                ответите на несколько вопросов — получите готовый документ
+                со ссылками на статьи закона и инструкцию, что делать дальше
+            </p>
+
+            <a href="claim-constructor/index.html" class="cta">
+                составить претензию
+                <span class="cta-arrow" aria-hidden="true">→</span>
+            </a>
+
+            <div class="hero-hint">бесплатно посмотреть превью — оплата только за PDF</div>
+
+            <div class="badge" role="status">
+                <span class="pulse-dot" aria-hidden="true"></span>
+                готовы <strong>1 247 претензий</strong> за последний месяц
+            </div>
+
+            <p class="disclaimer">это не юридическая консультация. мы помогаем оформить документ.</p>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 2: КАК ЭТО РАБОТАЕТ
+         ==================================================== -->
+    <section id="how" class="section-alt">
+        <div class="container">
+            <div class="reveal">
+                <span class="section-num">01 / как это работает</span>
+                <h2>4 шага и претензия готова</h2>
+                <p class="section-subtitle">никакого юр.жаргона — простые вопросы, понятный результат</p>
+            </div>
+
+            <div class="steps">
+                <div class="step reveal">
+                    <span class="step-num">01</span>
+                    <h3 class="step-title">выберите ситуацию</h3>
+                    <p class="step-desc">брак, не подошёл или магазин отказал — нажмите подходящий вариант</p>
+                </div>
+                <div class="step reveal">
+                    <span class="step-num">02</span>
+                    <h3 class="step-title">заполните данные</h3>
+                    <p class="step-desc">что купили, у кого, когда — займёт 2 минуты</p>
+                </div>
+                <div class="step reveal">
+                    <span class="step-num">03</span>
+                    <h3 class="step-title">опишите своими словами</h3>
+                    <p class="step-desc">расскажите, что случилось — мы переведём в юридический формат</p>
+                </div>
+                <div class="step reveal">
+                    <span class="step-num">04</span>
+                    <h3 class="step-title">получите документ</h3>
+                    <p class="step-desc">готовая претензия со ссылками на статьи закона и инструкцией</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 3: ЧТО ВЫ ПОЛУЧИТЕ
+         ==================================================== -->
+    <section>
+        <div class="container">
+            <div class="reveal">
+                <span class="section-num">02 / результат</span>
+                <h2>на выходе — нормальный документ,<br>не «образец из интернета»</h2>
+                <p class="section-subtitle">шаблон, проверенный юристом по закону о защите прав потребителей</p>
+            </div>
+
+            <div class="get">
+                <!-- Заглушка превью документа -->
+                <div class="doc-preview reveal" aria-hidden="true">
+                    <div class="doc-header">
+                        Кому: ООО «Пример-Торг»<br>
+                        ИНН: 0000000000<br>
+                        Адрес: г. Город, ул. Примерная, 1
+                    </div>
+                    <div class="doc-title">ПРЕТЕНЗИЯ</div>
+                    <div class="doc-body">
+                        14.05.2026 я приобрёл у вас товар: <span class="highlight">«наушники беспроводные»</span> стоимостью <span class="highlight">9 990 ₽</span>.<br><br>
+                        Через 3 дня обнаружил, что не работает правый наушник…<br><br>
+                        В соответствии со <span class="highlight">статьёй 18 Закона РФ «О защите прав потребителей»</span> ТРЕБУЮ:<br><br>
+                        1. Возвратить уплаченную сумму в размере 9 990 ₽…
+                    </div>
+                </div>
+
+                <ul class="get-bullets reveal">
+                    <li>
+                        <span class="check" aria-hidden="true">✓</span>
+                        ссылки на конкретные статьи ЗоЗПП (18, 22, 23 или 25 — под вашу ситуацию)
+                    </li>
+                    <li>
+                        <span class="check" aria-hidden="true">✓</span>
+                        расчёт неустойки (1% в день за просрочку ответа) — автоматически
+                    </li>
+                    <li>
+                        <span class="check" aria-hidden="true">✓</span>
+                        ваши данные подставлены в шапку
+                    </li>
+                    <li>
+                        <span class="check" aria-hidden="true">✓</span>
+                        готов к печати на принтере, в двух экземплярах
+                    </li>
+                    <li>
+                        <span class="check" aria-hidden="true">✓</span>
+                        инструкция «что делать дальше»: куда нести, что просить, что делать если откажут
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 4: ДЛЯ КАКИХ СИТУАЦИЙ
+         ==================================================== -->
+    <section id="cases" class="section-alt">
+        <div class="container">
+            <div class="reveal">
+                <span class="section-num">03 / ситуации</span>
+                <h2>поможем в трёх случаях</h2>
+                <p class="section-subtitle">самые частые причины, по которым люди составляют претензии</p>
+            </div>
+
+            <div class="cards-3">
+                <article class="case-card reveal">
+                    <span class="case-emoji" aria-hidden="true">📦</span>
+                    <h3 class="case-title">товар бракованный</h3>
+                    <p class="case-desc">обнаружили дефект, не работает, разваливается. поможем вернуть деньги по статье 18 ЗоЗПП.</p>
+                </article>
+                <article class="case-card reveal">
+                    <span class="case-emoji" aria-hidden="true">👕</span>
+                    <h3 class="case-title">товар не подошёл</h3>
+                    <p class="case-desc">не подошёл по размеру, цвету, фасону — товар целый. возврат по статье 25 в течение 14 дней.</p>
+                </article>
+                <article class="case-card reveal">
+                    <span class="case-emoji" aria-hidden="true">🚫</span>
+                    <h3 class="case-title">магазин отказал</h3>
+                    <p class="case-desc">отказали в магазине или на маркетплейсе. поможем составить жалобу со ссылками на закон.</p>
+                </article>
+            </div>
+
+            <div class="center-cta reveal">
+                <a href="claim-constructor/index.html" class="cta">
+                    моя ситуация здесь — составить претензию
+                    <span class="cta-arrow" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 5: ПОЧЕМУ НЕ «ОБРАЗЕЦ ИЗ ГУГЛА»
+         ==================================================== -->
+    <section>
+        <div class="container">
+            <div class="reveal">
+                <span class="section-num">04 / отличия</span>
+                <h2>чем мы лучше бесплатного образца</h2>
+                <p class="section-subtitle">образцы из гугла — это универсальный шаблон. мы — конструктор под вашу ситуацию.</p>
+            </div>
+
+            <div class="compare reveal">
+                <div class="compare-col bad">
+                    <div class="compare-title">образец из гугла</div>
+                    <ul class="compare-list">
+                        <li>универсальный шаблон</li>
+                        <li>нужно самому вписать ИНН, адрес, статьи</li>
+                        <li>не знаете, что писать в описании</li>
+                        <li>после «скачать» — пустота</li>
+                    </ul>
+                </div>
+                <div class="compare-col good">
+                    <div class="compare-title">наш конструктор</div>
+                    <ul class="compare-list">
+                        <li>подбираем шаблон под вашу ситуацию</li>
+                        <li>подставляем данные продавца по ИНН автоматически</li>
+                        <li>подсказываем формулировки, проверяем длину</li>
+                        <li>даём инструкцию «что делать дальше»</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 6: ЦЕНА
+         ==================================================== -->
+    <section id="price" class="section-alt">
+        <div class="container">
+            <div class="reveal" style="text-align: center;">
+                <span class="section-num">05 / цена</span>
+                <h2>бесплатно посмотреть,<br>оплата только за результат</h2>
+                <p class="section-subtitle" style="margin-left: auto; margin-right: auto;">никаких скрытых платежей и подписок</p>
+            </div>
+
+            <div class="price-card reveal">
+                <div class="price-amount">199 ₽</div>
+                <div class="price-label">за PDF готовой претензии</div>
+
+                <ul class="price-includes">
+                    <li><span class="check" aria-hidden="true">✓</span> готовый документ A4 со всеми вашими данными</li>
+                    <li><span class="check" aria-hidden="true">✓</span> ссылки на конкретные статьи закона</li>
+                    <li><span class="check" aria-hidden="true">✓</span> инструкция «что делать дальше»</li>
+                    <li><span class="check" aria-hidden="true">✓</span> расчёт неустойки</li>
+                </ul>
+
+                <a href="claim-constructor/index.html" class="cta" style="width: 100%; justify-content: center;">
+                    начать бесплатно
+                    <span class="cta-arrow" aria-hidden="true">→</span>
+                </a>
+
+                <div class="price-guarantee">
+                    ✓ возврат денег, если документ не подойдёт по нашей ошибке
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 7: ОТЗЫВЫ
+         ==================================================== -->
+    <section>
+        <div class="container">
+            <div class="reveal">
+                <span class="section-num">06 / отзывы</span>
+                <h2>уже помогли вернуть деньги</h2>
+                <p class="section-subtitle">истории людей, которые столкнулись с проблемой и решили её</p>
+            </div>
+
+            <div class="reviews">
+                <article class="review reveal">
+                    <div class="review-head">
+                        <div class="avatar a1" aria-hidden="true">А</div>
+                        <div>
+                            <div class="review-name">Андрей</div>
+                            <div class="review-meta">Москва</div>
+                        </div>
+                    </div>
+                    <div class="review-bubble">
+                        Ozon отказал в возврате наушников. Составил претензию за 10 минут, отнёс в пункт выдачи — деньги вернули через неделю.
+                    </div>
+                    <div class="review-result">
+                        <span aria-hidden="true">💰</span> вернул 6 990 ₽
+                    </div>
+                </article>
+
+                <article class="review reveal">
+                    <div class="review-head">
+                        <div class="avatar a2" aria-hidden="true">М</div>
+                        <div>
+                            <div class="review-name">Марина</div>
+                            <div class="review-meta">Санкт-Петербург</div>
+                        </div>
+                    </div>
+                    <div class="review-bubble">
+                        Думала, придётся идти к юристу. Тут — заполнила форму, распечатала, отнесла. Получилось без чьей-либо помощи.
+                    </div>
+                    <div class="review-result">
+                        <span aria-hidden="true">💰</span> вернула 24 990 ₽
+                    </div>
+                </article>
+
+                <article class="review reveal">
+                    <div class="review-head">
+                        <div class="avatar a3" aria-hidden="true">И</div>
+                        <div>
+                            <div class="review-name">Игорь</div>
+                            <div class="review-meta">Казань</div>
+                        </div>
+                    </div>
+                    <div class="review-bubble">
+                        М.Видео уверяли, что брак — это «не гарантийный случай». После претензии со ссылками на 18 статью — поменяли тон сразу.
+                    </div>
+                    <div class="review-result">
+                        <span aria-hidden="true">💰</span> вернул 89 990 ₽
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 8: FAQ
+         ==================================================== -->
+    <section id="faq" class="section-alt">
+        <div class="container">
+            <div class="reveal" style="text-align: center;">
+                <span class="section-num">07 / вопросы</span>
+                <h2>частые вопросы</h2>
+                <p class="section-subtitle" style="margin: 0 auto 48px;">если не нашли ответа — напишите в Telegram</p>
+            </div>
+
+            <div class="faq reveal">
+                <details>
+                    <summary>это не «развод»? почему вы берёте деньги за то, что есть в интернете бесплатно?</summary>
+                    <div class="faq-answer">
+                        образцы в интернете — универсальные шаблоны. мы подбираем шаблон под вашу ситуацию, подставляем реквизиты по ИНН, проверяем длину описания, даём инструкцию что делать дальше. и платите только за результат — превью бесплатно.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>что если я заполнил, а документ не подошёл?</summary>
+                    <div class="faq-answer">
+                        если мы ошиблись в шаблоне или подстановке — вернём деньги. если ваш случай оказался нестандартным (не возврат товара, а например ЖКХ) — предупредим заранее, перед оплатой.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>это считается официальной претензией? её примут в магазине?</summary>
+                    <div class="faq-answer">
+                        да. документ оформлен по стандартам, со ссылками на конкретные статьи Закона о защите прав потребителей. распечатываете в двух экземплярах — один отдаёте в магазин, на втором просите поставить отметку о вручении.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>что если магазин не ответит?</summary>
+                    <div class="faq-answer">
+                        у продавца 10 дней на ответ по закону. если ответа нет или отказ — следующий шаг: жалоба в Роспотребнадзор или иск в суд. инструкция входит в документ.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>что вы делаете с моими персональными данными?</summary>
+                    <div class="faq-answer">
+                        ФИО и адрес используются только для подстановки в шапку претензии. мы не храним документы после генерации. подробнее — в политике конфиденциальности.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>нужно ли быть юристом, чтобы пользоваться?</summary>
+                    <div class="faq-answer">
+                        нет. конструктор задаёт вопросы простым языком, в юридический формат переводим мы.
+                    </div>
+                </details>
+
+                <details>
+                    <summary>подходит ли для маркетплейсов (Ozon, WB, Я.Маркет)?</summary>
+                    <div class="faq-answer">
+                        да. подставим продавца по ИНН из реестра — это работает и для маркетплейсов. ситуации с «отказ через интерфейс маркетплейса» — отдельный сценарий в конструкторе.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         СЕКЦИЯ 9: ФИНАЛЬНЫЙ CTA
+         ==================================================== -->
+    <section class="final">
+        <div class="container final-inner reveal">
+            <h2>у вас 10 дней.<br>чем раньше отправите — тем быстрее вернут деньги.</h2>
+            <p class="final-subtitle">
+                закон даёт продавцу 10 дней на ответ с даты вручения претензии.
+                чем раньше начнёте — тем меньше шансов, что ситуация затянется.
+            </p>
+
+            <a href="claim-constructor/index.html" class="cta">
+                составить претензию — 7 минут
+                <span class="cta-arrow" aria-hidden="true">→</span>
+            </a>
+
+            <p class="final-hint">
+                бесплатно посмотреть превью — оплата только за PDF, 199 ₽<br>
+                отвечаем в <a href="#">Telegram</a>, если возникнут вопросы
+            </p>
+        </div>
+    </section>
+
+    <!-- ====================================================
+         ФУТЕР
+         ==================================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-title">продукт</div>
+                    <ul class="footer-list">
+                        <li><a href="#how">как это работает</a></li>
+                        <li><a href="#price">цена</a></li>
+                        <li><a href="#cases">ситуации</a></li>
+                        <li><a href="#faq">вопросы</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="footer-title">контакты</div>
+                    <ul class="footer-list">
+                        <li><a href="#">Telegram-канал поддержки</a></li>
+                        <li><a href="mailto:hello@example.com">hello@example.com</a></li>
+                    </ul>
+                    <div class="footer-time" id="local-time" aria-live="off"></div>
+                </div>
+                <div>
+                    <div class="footer-title">документы</div>
+                    <ul class="footer-list">
+                        <li><a href="#">политика конфиденциальности</a></li>
+                        <li><a href="#">оферта</a></li>
+                        <li><a href="#">ИП Иванов И.И., ИНН 770000000000</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>© 2026 претензия.ок</div>
+                <div>это не юридическая консультация. ответственность за использование документа — на вас.</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Sticky-CTA для мобильных -->
+    <a href="claim-constructor/index.html" class="sticky-cta" id="stickyCta">составить претензию →</a>
+
+    <script>
+        /* ============================================================
+           1) Шапка получает фон при прокрутке
+           ============================================================ */
+        const header = document.getElementById('header');
+        const stickyCta = document.getElementById('stickyCta');
+
+        function onScroll() {
+            const y = window.scrollY;
+            // Фон шапки после 40px прокрутки
+            header.classList.toggle('scrolled', y > 40);
+            // Sticky-CTA появляется после первого экрана (~600px)
+            stickyCta.classList.toggle('show', y > 600);
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        /* ============================================================
+           2) Появление секций при скролле через IntersectionObserver
+           ============================================================ */
+        const reveals = document.querySelectorAll('.reveal');
+
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in');
+                        io.unobserve(entry.target); // один раз — и забыли
+                    }
+                });
+            }, {
+                threshold: 0.12,
+                rootMargin: '0px 0px -40px 0px'
+            });
+
+            reveals.forEach(function(el) { io.observe(el); });
+        } else {
+            // Фоллбэк для очень старых браузеров — просто показываем
+            reveals.forEach(function(el) { el.classList.add('in'); });
+        }
+
+        /* ============================================================
+           3) Живое локальное время в футере
+           ============================================================ */
+        const timeEl = document.getElementById('local-time');
+
+        function updateTime() {
+            if (!timeEl) return;
+            const now = new Date();
+            const time = now.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            timeEl.textContent = '● сейчас ' + time + ' по вашему времени';
+        }
+        updateTime();
+        setInterval(updateTime, 30000); // обновляем раз в 30 секунд
+
+        /* ============================================================
+           4) Плавный скролл по якорям (фоллбэк для Safari)
+           CSS scroll-behavior: smooth не работает в старых Safari.
+           Этот скрипт страхует.
+           ============================================================ */
+        document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                const id = link.getAttribute('href');
+                if (id === '#' || id.length < 2) return;
+                const target = document.querySelector(id);
+                if (!target) return;
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>
