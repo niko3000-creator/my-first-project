@@ -583,6 +583,13 @@
 
         <div class="hint">бесплатно посмотреть превью — оплата только за PDF</div>
 
+        <!-- Дисклеймер на лендинге — снижает юр.риски сервиса
+             и сразу честно показывает, что мы делаем, а что нет. -->
+        <div class="disclaimer">
+            это не юридическая консультация. мы помогаем оформить документ,<br>
+            ответственность за его использование — на вас.
+        </div>
+
     </section>
 
 
@@ -743,6 +750,25 @@
         <h2 class="question">опишите, что случилось</h2>
         <p class="question-hint">расскажите своими словами — мы переведём в юридический формат</p>
 
+        <!-- === Блок «ваши данные» ===
+             Нужны, чтобы подставить в шапку претензии вместо «_____».
+             Компактно над основным textarea, чтобы не плодить отдельный шаг wizard. -->
+        <div class="field">
+            <label for="user-name">ваши ФИО</label>
+            <input type="text" id="user-name" placeholder="например: Иванов Иван Иванович">
+        </div>
+
+        <div class="field">
+            <label for="user-address">ваш адрес для письменного ответа</label>
+            <input type="text" id="user-address" placeholder="например: 123456, г. Москва, ул. Ленина, 1, кв. 5">
+        </div>
+
+        <div class="field">
+            <label for="user-phone">телефон (необязательно)</label>
+            <input type="tel" id="user-phone" inputmode="tel" placeholder="например: +7 999 123-45-67">
+            <div class="field-hint">для быстрой связи, если продавец захочет ответить устно</div>
+        </div>
+
         <!-- Подсказка с примерами — снимает страх «пустого листа».
              Помогает пользователю понять, что вообще писать. -->
         <div class="examples">
@@ -837,6 +863,11 @@
                 name: '',
                 inn: '',
                 address: ''
+            },
+            user: {             // данные пользователя — подставляются в шапку претензии
+                name: '',
+                address: '',
+                phone: ''
             },
             description: ''     // описание ситуации с шага 5
         };
@@ -1203,26 +1234,61 @@
             }
         }
 
-        /* === Сохранение описания и переход к генерации ===
-           Проверяем длину, сохраняем, идём дальше. */
+        /* === Сохранение описания + данных пользователя и переход к генерации ===
+           Проверяем длину описания и обязательные поля пользователя. */
         function saveDescription() {
+            const userNameInput = document.getElementById('user-name');
+            const userAddressInput = document.getElementById('user-address');
+            const userPhoneInput = document.getElementById('user-phone');
             const textarea = document.getElementById('description');
+
+            const userName = userNameInput.value.trim();
+            const userAddress = userAddressInput.value.trim();
+            const userPhone = userPhoneInput.value.trim();
             const description = textarea.value.trim();
 
+            // Сбрасываем подсветку ошибок от прошлых попыток
+            userNameInput.classList.remove('error');
+            userAddressInput.classList.remove('error');
             textarea.classList.remove('error');
+
+            let hasError = false;
+            let firstErrorEl = null;
+
+            if (!userName) {
+                userNameInput.classList.add('error');
+                firstErrorEl = firstErrorEl || userNameInput;
+                hasError = true;
+            }
+            if (!userAddress) {
+                userAddressInput.classList.add('error');
+                firstErrorEl = firstErrorEl || userAddressInput;
+                hasError = true;
+            }
+            // Телефон необязательный — не проверяем
 
             if (description.length < DESCRIPTION_MIN) {
                 textarea.classList.add('error');
-                alert('опишите ситуацию подробнее — минимум ' + DESCRIPTION_MIN + ' символов.\n\nсейчас: ' + description.length);
-                return;
+                firstErrorEl = firstErrorEl || textarea;
+                hasError = true;
             }
-
             if (description.length > DESCRIPTION_MAX) {
                 textarea.classList.add('error');
-                alert('слишком длинное описание — максимум ' + DESCRIPTION_MAX + ' символов.\n\nсейчас: ' + description.length + '\n\nсократите, оставив суть.');
+                firstErrorEl = firstErrorEl || textarea;
+                hasError = true;
+            }
+
+            if (hasError) {
+                // Прокручиваем к первому проблемному полю и фокусируем — без раздражающего alert
+                if (firstErrorEl) {
+                    firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorEl.focus();
+                }
                 return;
             }
 
+            // Всё ок — сохраняем
+            state.user = { name: userName, address: userAddress, phone: userPhone };
             state.description = description;
             console.log('финальное состояние:', state);
 
@@ -1282,14 +1348,20 @@
             const price = formatMoney(s.product.price);
             const penalty = formatMoney(calculatePenalty(s.product.price, 10));
 
+            // Шапка «От» — подставляем данные пользователя.
+            // Телефон выводим только если указан (необязательное поле).
+            let fromBlock = 'От: ' + s.user.name + '\nАдрес: ' + s.user.address;
+            if (s.user.phone) {
+                fromBlock += '\nТелефон: ' + s.user.phone;
+            }
+
             // Заголовок и шапка — одинаковые для всех типов претензии
             const header =
 'Кому: ' + s.seller.name + '\n' +
 'ИНН: ' + s.seller.inn + '\n' +
 'Адрес: ' + s.seller.address + '\n' +
 '\n' +
-'От: ___________________________________\n' +
-'(укажите ваши ФИО, адрес, телефон)\n' +
+fromBlock + '\n' +
 '\n' +
 '\n' +
 '                    ПРЕТЕНЗИЯ\n' +
@@ -1337,11 +1409,12 @@ purchaseDate + ' я приобрёл у вас товар: «' + s.product.name 
 '3. В случае дальнейшего отказа я буду вынужден обратиться с жалобой в территориальное управление Роспотребнадзора, а также в суд с требованием взыскания, помимо указанной суммы, неустойки 1% в день (статья 23 Закона), штрафа 50% (статья 13 Закона) и компенсации морального вреда.\n\n';
             }
 
-            // Подпись — одинаковая для всех
+            // Подпись — подставляем ФИО, оставляем место только для росчерка от руки
             const footer =
 'Ответ на настоящую претензию прошу направить в письменном виде по моему адресу в установленный законом срок.\n\n' +
 'Дата: ' + today + '\n' +
-'Подпись: _________________\n';
+'_________________ / ' + s.user.name + ' /\n' +
+'(подпись)\n';
 
             return header + situation + body + footer;
         }
@@ -1431,6 +1504,7 @@ purchaseDate + ' я приобрёл у вас товар: «' + s.product.name 
             state.problem = null;
             state.product = { name: '', price: '', date: '' };
             state.seller = { name: '', inn: '', address: '' };
+            state.user = { name: '', address: '', phone: '' };
             state.description = '';
 
             // Очищаем поля в форме
@@ -1440,6 +1514,9 @@ purchaseDate + ' я приобрёл у вас товар: «' + s.product.name 
             document.getElementById('seller-name').value = '';
             document.getElementById('seller-inn').value = '';
             document.getElementById('seller-address').value = '';
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-address').value = '';
+            document.getElementById('user-phone').value = '';
             document.getElementById('description').value = '';
             document.getElementById('char-count').textContent = '0';
 
